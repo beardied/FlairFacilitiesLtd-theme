@@ -1,0 +1,5 @@
+/**
+ * FlairFacilitiesLtd — Block Editor Styles
+ */
+.editor-styles-wrapper { font-family: 'Inter', system-ui, sans-serif; }
+.ffl-expertise-card, .ffl-service-card, .ffl-testi-card { border: 1px solid #e2e8f0; }

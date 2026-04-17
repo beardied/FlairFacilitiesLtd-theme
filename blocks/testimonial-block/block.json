@@ -1,0 +1,16 @@
+{
+    "$schema": "https://schemas.wp.org/wp/6.5/block.json",
+    "apiVersion": 3,
+    "name": "flairltd/testimonial-block",
+    "version": "1.0.0",
+    "title": "Testimonial Block",
+    "category": "flairltd",
+    "icon": "format-quote",
+    "description": "A styled testimonial card.",
+    "attributes": {
+        "quote": { "type": "string", "default": "Great service!" },
+        "author": { "type": "string", "default": "Client Name" },
+        "rating": { "type": "number", "default": 5 }
+    },
+    "render": "file:./render.php"
+}

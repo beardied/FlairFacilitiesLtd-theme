@@ -1,0 +1,18 @@
+{
+    "$schema": "https://schemas.wp.org/wp/6.5/block.json",
+    "apiVersion": 3,
+    "name": "flairltd/service-block",
+    "version": "1.0.0",
+    "title": "Service Block",
+    "category": "flairltd",
+    "icon": "hammer",
+    "description": "A service card with icon, description and CTA.",
+    "attributes": {
+        "title": { "type": "string", "default": "Service Title" },
+        "description": { "type": "string", "default": "Description" },
+        "icon": { "type": "string", "default": "🔥" },
+        "buttonText": { "type": "string", "default": "Get a Quote" },
+        "buttonUrl": { "type": "string", "default": "#" }
+    },
+    "render": "file:./render.php"
+}
