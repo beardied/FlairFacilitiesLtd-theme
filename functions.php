@@ -8,7 +8,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 define( 'FLAIR_LTD_VERSION', '3.2.0' );
-define( 'FLAIR_LTD_DIR', get_template_directory() );
+define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
 function flairltd_setup() {
@@ -72,3 +72,23 @@ function flairltd_body_class( $classes ) {
     return $classes;
 }
 add_filter( 'body_class', 'flairltd_body_class' );
+
+add_filter( 'register_block_type_args', function( $args, $name ) {
+    if ( strpos( $name, 'flairltd/' ) === 0 ) {
+        $args['editor_script_handles'] = [ 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components' ];
+    }
+    return $args;
+}, 10, 2 );
+function flairltd_editor_assets() {
+    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter' ];
+    foreach ( $blocks as $b ) {
+        wp_enqueue_script(
+            'flairltd-block-' . $b,
+            FLAIR_LTD_URI . '/blocks/' . $b . '/index.js',
+            [ 'wp-blocks', 'wp-element', 'wp-editor' ],
+            FLAIR_LTD_VERSION,
+            true
+        );
+    }
+}
+add_action( 'enqueue_block_editor_assets', 'flairltd_editor_assets' );

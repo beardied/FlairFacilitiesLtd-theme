@@ -10,8 +10,9 @@
     "attributes": {
         "title": { "type": "string", "default": "Boiler & Heating" },
         "description": { "type": "string", "default": "Installation and repairs." },
-        "buttonText": { "type": "string", "default": "Learn More →" },
+        "buttonText": { "type": "string", "default": "Learn More" },
         "buttonUrl": { "type": "string", "default": "#" }
     },
+    "editorScript": "file:./index.js",
     "render": "file:./render.php"
 }

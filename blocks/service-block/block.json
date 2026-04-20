@@ -10,9 +10,10 @@
     "attributes": {
         "title": { "type": "string", "default": "Service Title" },
         "description": { "type": "string", "default": "Description" },
-        "icon": { "type": "string", "default": "🔥" },
+        "icon": { "type": "string", "default": "" },
         "buttonText": { "type": "string", "default": "Get a Quote" },
         "buttonUrl": { "type": "string", "default": "#" }
     },
+    "editorScript": "file:./index.js",
     "render": "file:./render.php"
 }
