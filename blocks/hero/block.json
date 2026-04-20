@@ -1,0 +1,29 @@
+{
+    "$schema": "https://schemas.wp.org/wp/6.5/block.json",
+    "apiVersion": 3,
+    "name": "flairltd/hero",
+    "version": "1.0.0",
+    "title": "Hero Section",
+    "category": "flairltd",
+    "icon": "cover-image",
+    "description": "Full-width hero section with headline, badges, buttons and side card.",
+    "attributes": {
+        "headline": { "type": "string", "default": "24/7 COMMERCIAL HEATING SYSTEM IN LONDON" },
+        "description": { "type": "string", "default": "Keeping your boilers, plant rooms and building systems efficient, compliant and reliable — day and night." },
+        "badge1": { "type": "string", "default": "Gas Safe Registered" },
+        "badge2": { "type": "string", "default": "24/7 Emergency Response" },
+        "badge3": { "type": "string", "default": "Fully Insured" },
+        "primaryBtnText": { "type": "string", "default": "Call Us Now 020 7998 9005" },
+        "primaryBtnUrl": { "type": "string", "default": "tel:02079989005" },
+        "secondaryBtnText": { "type": "string", "default": "Request a Quote" },
+        "secondaryBtnUrl": { "type": "string", "default": "/contact-us/" },
+        "cardTitle": { "type": "string", "default": "NEED IT SORTED FAST?" },
+        "cardDescription": { "type": "string", "default": "From emergency repairs to ongoing maintenance, we fix problems quickly and professionally. Fully insured engineers, rapid response and transparent pricing." },
+        "cardBtn1Text": { "type": "string", "default": "Call Us Now" },
+        "cardBtn1Url": { "type": "string", "default": "tel:02079989005" },
+        "cardBtn2Text": { "type": "string", "default": "Request a Quote" },
+        "cardBtn2Url": { "type": "string", "default": "/contact-us/" }
+    },
+    "editorScript": "file:./index.js",
+    "render": "file:./render.php"
+}

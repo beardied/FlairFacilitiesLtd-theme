@@ -1,0 +1,30 @@
+{
+    "$schema": "https://schemas.wp.org/wp/6.5/block.json",
+    "apiVersion": 3,
+    "name": "flairltd/check-list",
+    "version": "1.0.0",
+    "title": "Check List",
+    "category": "flairltd",
+    "icon": "yes-alt",
+    "description": "A list of check items with icon, title and optional description.",
+    "attributes": {
+        "item1Title": { "type": "string", "default": "" },
+        "item1Description": { "type": "string", "default": "" },
+        "item2Title": { "type": "string", "default": "" },
+        "item2Description": { "type": "string", "default": "" },
+        "item3Title": { "type": "string", "default": "" },
+        "item3Description": { "type": "string", "default": "" },
+        "item4Title": { "type": "string", "default": "" },
+        "item4Description": { "type": "string", "default": "" },
+        "item5Title": { "type": "string", "default": "" },
+        "item5Description": { "type": "string", "default": "" },
+        "item6Title": { "type": "string", "default": "" },
+        "item6Description": { "type": "string", "default": "" },
+        "item7Title": { "type": "string", "default": "" },
+        "item7Description": { "type": "string", "default": "" },
+        "item8Title": { "type": "string", "default": "" },
+        "item8Description": { "type": "string", "default": "" }
+    },
+    "editorScript": "file:./index.js",
+    "render": "file:./render.php"
+}

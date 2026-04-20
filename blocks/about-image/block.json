@@ -1,0 +1,22 @@
+{
+    "$schema": "https://schemas.wp.org/wp/6.5/block.json",
+    "apiVersion": 3,
+    "name": "flairltd/about-image",
+    "version": "1.0.0",
+    "title": "About Image",
+    "category": "flairltd",
+    "icon": "format-image",
+    "description": "Image with rounded corners and stats overlay.",
+    "attributes": {
+        "imageUrl": { "type": "string", "default": "" },
+        "imageAlt": { "type": "string", "default": "Flair Facilities Engineer" },
+        "stat1Number": { "type": "string", "default": "15" },
+        "stat1Suffix": { "type": "string", "default": "+" },
+        "stat1Label": { "type": "string", "default": "Years Experience" },
+        "stat2Number": { "type": "string", "default": "100" },
+        "stat2Suffix": { "type": "string", "default": "%" },
+        "stat2Label": { "type": "string", "default": "Satisfaction" }
+    },
+    "editorScript": "file:./index.js",
+    "render": "file:./render.php"
+}

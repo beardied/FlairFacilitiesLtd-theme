@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'FLAIR_LTD_VERSION', '3.2.0' );
+define( 'FLAIR_LTD_VERSION', '3.2.1' );
 define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
@@ -53,9 +53,9 @@ function flairltd_block_categories( $cats ) {
 add_filter( 'block_categories_all', 'flairltd_block_categories', 10, 1 );
 
 function flairltd_register_blocks() {
-    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter' ];
+    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list' ];
     foreach ( $blocks as $b ) {
-        register_block_type( FLAIR_LTD_DIR . '/blocks/' . $b );
+        register_block_type( FLAIR_LTD_DIR . 'blocks/' . $b );
     }
 }
 add_action( 'init', 'flairltd_register_blocks' );
@@ -65,30 +65,10 @@ function flairltd_register_patterns() {
 }
 add_action( 'init', 'flairltd_register_patterns' );
 
-require_once FLAIR_LTD_DIR . '/inc/customizer.php';
+require_once FLAIR_LTD_DIR . 'inc/customizer.php';
 
 function flairltd_body_class( $classes ) {
     if ( is_front_page() ) $classes[] = 'is-front-page';
     return $classes;
 }
 add_filter( 'body_class', 'flairltd_body_class' );
-
-add_filter( 'register_block_type_args', function( $args, $name ) {
-    if ( strpos( $name, 'flairltd/' ) === 0 ) {
-        $args['editor_script_handles'] = [ 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components' ];
-    }
-    return $args;
-}, 10, 2 );
-function flairltd_editor_assets() {
-    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter' ];
-    foreach ( $blocks as $b ) {
-        wp_enqueue_script(
-            'flairltd-block-' . $b,
-            FLAIR_LTD_URI . '/blocks/' . $b . '/index.js',
-            [ 'wp-blocks', 'wp-element', 'wp-editor' ],
-            FLAIR_LTD_VERSION,
-            true
-        );
-    }
-}
-add_action( 'enqueue_block_editor_assets', 'flairltd_editor_assets' );

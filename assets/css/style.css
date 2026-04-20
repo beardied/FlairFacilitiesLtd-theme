@@ -143,53 +143,34 @@ img { max-width: 100%; height: auto; display: block; }
 .ffl-nav a:hover { color: #fff; }
 .ffl-nav a:hover::after { width: 100%; }
 
-/* Mobile hamburger */
-.ffl-menu-toggle {
-    display: none;
-    flex-direction: column;
-    gap: 5px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 8px;
-    z-index: 1001;
-}
-.ffl-menu-toggle span {
+/* Site Logo */
+.ffl-site-logo img {
+    max-height: 48px;
+    width: auto;
     display: block;
-    width: 26px;
-    height: 2.5px;
-    background: #fff;
-    border-radius: 2px;
-    transition: all 0.3s var(--ease-out);
 }
-.ffl-menu-toggle.is-open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
-.ffl-menu-toggle.is-open span:nth-child(2) { opacity: 0; }
-.ffl-menu-toggle.is-open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
 
-/* Mobile nav overlay */
-.ffl-mobile-nav {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(10,22,40,0.98);
+/* Navigation overlay (dark theme) */
+.wp-block-navigation__responsive-container {
+    background: rgba(10,22,40,0.98) !important;
     backdrop-filter: blur(20px);
-    z-index: 999;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 28px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.35s ease;
 }
-.ffl-mobile-nav.is-open { opacity: 1; pointer-events: auto; display: flex; }
-.ffl-mobile-nav a {
-    font-size: 26px;
+.wp-block-navigation__responsive-container .wp-block-navigation-item a {
+    font-size: 22px;
     font-weight: 700;
     color: #fff;
+    padding: 12px 0;
 }
-.ffl-mobile-nav a:hover { color: var(--ffl-accent); }
-.ffl-mobile-nav .ffl-btn { margin-top: 16px; }
+.wp-block-navigation__responsive-container .wp-block-navigation-item a:hover {
+    color: var(--ffl-accent);
+}
+.wp-block-navigation__responsive-container-close {
+    color: #fff;
+}
+.wp-block-navigation__responsive-container-close svg {
+    width: 32px;
+    height: 32px;
+}
 
 /* ========== HERO (FULL WIDTH) ========== */
 .ffl-hero {
@@ -561,11 +542,10 @@ img { max-width: 100%; height: auto; display: block; }
     .ffl-hero-card { order: -1; max-width: 100%; }
     .ffl-hero { min-height: auto; }
     .ffl-hero h1 { font-size: 1.9rem; }
-    .ffl-nav { display: none; }
-    .ffl-menu-toggle { display: flex; }
     .ffl-header-inner { padding: 0 16px; }
     .ffl-expertise-card, .ffl-service-card { padding: 28px 20px; }
     .ffl-topbar-inner { padding: 0 16px; }
+    .ffl-site-logo img { max-height: 40px; }
 }
 
 @media (max-width: 600px) {

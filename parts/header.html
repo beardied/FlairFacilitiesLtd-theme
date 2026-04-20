@@ -1,36 +1,27 @@
-<!-- wp:html -->
-<div class="ffl-topbar">
-    <div class="ffl-topbar-inner">
-        <span>24/7 Emergency Engineers Available</span>
-        <span>Call Us: <a href="tel:02079989005">020 7998 9005</a></span>
+<!-- wp:group {"className":"ffl-topbar","layout":{"type":"constrained"}} -->
+<div class="wp-block-group ffl-topbar">
+    <div class="wp-block-group__inner-container ffl-topbar-inner">
+        <!-- wp:paragraph {"style":{"typography":{"fontSize":"12px"}}} -->
+        <p style="font-size:12px">24/7 Emergency Engineers Available</p>
+        <!-- /wp:paragraph -->
+        <!-- wp:paragraph {"style":{"typography":{"fontSize":"12px"}}} -->
+        <p style="font-size:12px">Call Us: <a href="tel:02079989005">020 7998 9005</a></p>
+        <!-- /wp:paragraph -->
     </div>
 </div>
-<header class="ffl-header">
-    <div class="ffl-header-inner">
-        <div class="ffl-logo">
-            <span class="ffl-logo-main">FLAIR</span>
-            <span class="ffl-logo-sub">HVAC · BMS · GAS</span>
-        </div>
-        <nav class="ffl-nav">
-            <a href="/">Home</a>
-            <a href="/about-us/">About Us</a>
-            <a href="/services/">Services</a>
-            <a href="/articles/">Articles</a>
-            <a href="/contact-us/">Contact Us</a>
-        </nav>
-        <button class="ffl-menu-toggle" aria-label="Open menu" aria-expanded="false">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
+<!-- /wp:group -->
+
+<!-- wp:group {"className":"ffl-header","layout":{"type":"flex","flexWrap":"nowrap","justifyContent":"space-between"}} -->
+<div class="wp-block-group ffl-header">
+    <div class="wp-block-group__inner-container ffl-header-inner">
+        <!-- wp:site-logo {"width":180,"className":"ffl-site-logo"} /-->
+        <!-- wp:navigation {"className":"ffl-nav","overlayMenu":"mobile","layout":{"type":"flex","justifyContent":"right"}} -->
+            <!-- wp:navigation-link {"label":"Home","url":"/","kind":"custom"} /-->
+            <!-- wp:navigation-link {"label":"About Us","url":"/about-us/","kind":"custom"} /-->
+            <!-- wp:navigation-link {"label":"Services","url":"/services/","kind":"custom"} /-->
+            <!-- wp:navigation-link {"label":"Articles","url":"/articles/","kind":"custom"} /-->
+            <!-- wp:navigation-link {"label":"Contact Us","url":"/contact-us/","kind":"custom"} /-->
+        <!-- /wp:navigation -->
     </div>
-    <div class="ffl-mobile-nav">
-        <a href="/">Home</a>
-        <a href="/about-us/">About Us</a>
-        <a href="/services/">Services</a>
-        <a href="/articles/">Articles</a>
-        <a href="/contact-us/">Contact Us</a>
-        <a href="tel:02079989005" class="ffl-btn ffl-btn-red">Call Now</a>
-    </div>
-</header>
-<!-- /wp:html -->
+</div>
+<!-- /wp:group -->
