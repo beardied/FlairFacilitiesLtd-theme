@@ -14,10 +14,29 @@ $cBtn1Text  = ! empty( $attributes['cardBtn1Text'] ) ? $attributes['cardBtn1Text
 $cBtn1Url   = ! empty( $attributes['cardBtn1Url'] ) ? $attributes['cardBtn1Url'] : '#';
 $cBtn2Text  = ! empty( $attributes['cardBtn2Text'] ) ? $attributes['cardBtn2Text'] : '';
 $cBtn2Url   = ! empty( $attributes['cardBtn2Url'] ) ? $attributes['cardBtn2Url'] : '#';
+$bgImage    = ! empty( $attributes['backgroundImage'] ) ? $attributes['backgroundImage'] : '';
+$ovColor    = ! empty( $attributes['overlayColor'] ) ? $attributes['overlayColor'] : '#0a1628';
+$ovOpacity  = isset( $attributes['overlayOpacity'] ) ? intval( $attributes['overlayOpacity'] ) : 85;
 
 $badges = array_filter( [ $badge1, $badge2, $badge3 ] );
+
+$hero_style = '';
+$hero_class = 'ffl-hero';
+$before_style = '';
+
+if ( $bgImage ) {
+    $hero_class .= ' ffl-hero-has-image';
+    $hero_style = 'background-image: url(' . esc_url( $bgImage ) . '); background-size: cover; background-position: center;';
+    $opacity_dec = max( 0, min( 100, $ovOpacity ) ) / 100;
+    $before_style = 'background: ' . esc_attr( $ovColor ) . '; opacity: ' . $opacity_dec . ';';
+}
 ?>
-<section class="ffl-hero">
+<section class="<?php echo esc_attr( $hero_class ); ?>" <?php if ( $hero_style ) echo 'style="' . esc_attr( $hero_style ) . '"'; ?>>
+    <?php if ( $bgImage ) : ?>
+        <div class="ffl-hero-overlay" style="<?php echo esc_attr( $before_style ); ?>"></div>
+    <?php else : ?>
+        <div class="ffl-hero-gradient"></div>
+    <?php endif; ?>
     <div class="ffl-hero-inner">
         <div class="ffl-hero-content">
             <h1 class="ffl-fade-up"><?php echo esc_html( $h ); ?></h1>

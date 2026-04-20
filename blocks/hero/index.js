@@ -1,6 +1,7 @@
 (function(wp){
     var el = wp.element.createElement;
     var TextControl = wp.components.TextControl;
+    var RangeControl = wp.components.RangeControl;
     var PanelBody = wp.components.PanelBody;
     var InspectorControls = wp.blockEditor.InspectorControls;
 
@@ -9,7 +10,12 @@
             var attr = props.attributes;
             return el('div', { style: { border: '1px dashed #666', padding: '10px', background: '#0a1628', color: '#fff' } },
                 el(InspectorControls, {},
-                    el(PanelBody, { title: 'Hero Content', initialOpen: true },
+                    el(PanelBody, { title: 'Background', initialOpen: true },
+                        el(TextControl, { label: 'Background Image URL', value: attr.backgroundImage, onChange: function(v) { props.setAttributes({backgroundImage: v}); } }),
+                        el(TextControl, { label: 'Overlay Colour', value: attr.overlayColor, onChange: function(v) { props.setAttributes({overlayColor: v}); } }),
+                        el(RangeControl, { label: 'Overlay Opacity (%)', value: attr.overlayOpacity, min: 0, max: 100, onChange: function(v) { props.setAttributes({overlayOpacity: v}); } })
+                    ),
+                    el(PanelBody, { title: 'Hero Content' },
                         el(TextControl, { label: 'Headline', value: attr.headline, onChange: function(v) { props.setAttributes({headline: v}); } }),
                         el(TextControl, { label: 'Description', value: attr.description, onChange: function(v) { props.setAttributes({description: v}); } })
                     ),
