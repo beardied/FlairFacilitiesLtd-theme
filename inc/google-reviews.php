@@ -517,16 +517,17 @@ function flairltd_reviews_management_page_html() {
                 <details style="margin-bottom: 15px; background: #f0f6fc; padding: 10px 15px; border-radius: 4px;">
                     <summary style="cursor:pointer; font-weight:600; color:#0969da;">&#128161; How to set up Google Business Profile API access</summary>
                     <div style="margin-top: 10px; line-height: 1.6;">
-                        <h4 style="margin: 10px 0 5px;">Step 1: Create OAuth Credentials</h4>
+                        <h4 style="margin: 10px 0 5px;">Step 1: Use an Existing Project (Important!)</h4>
+                        <p style="background:#fffbeb; padding:8px; border-left:3px solid #f59e0b;"><strong>The main "Google My Business API" is a restricted API.</strong> It does NOT appear in the Google Cloud Console API Library for new projects. You must use an <strong>existing project</strong> that already has this API enabled. Do not create a new project — it will not work.</p>
                         <ol>
-                            <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> and sign in.</li>
-                            <li>Create a new project (or use an existing one).</li>
-                            <li>Go to <strong>APIs &amp; Services &rarr; Library</strong> and enable:
+                            <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> and sign in with the same Google account that owns your Business Profile.</li>
+                            <li>Select your <strong>existing project</strong> (the one that was previously set up and already has the My Business API enabled). If you are unsure which project, look for one that has existing API usage or credentials.</li>
+                            <li>Go to <strong>APIs &amp; Services &rarr; Library</strong> and enable these publicly available APIs:
                                 <ul>
-                                    <li><strong>My Business API</strong></li>
                                     <li><strong>My Business Account Management API</strong></li>
                                     <li><strong>My Business Business Information API</strong></li>
                                 </ul>
+                                <em>(You will NOT find "My Business API" or "Google My Business API" in the library — this is normal. It means your project already has it, or it was enabled via a direct link when the project was first created.)</em>
                             </li>
                             <li>Go to <strong>APIs &amp; Services &rarr; OAuth consent screen</strong>.</li>
                             <li>Choose <strong>External</strong> and fill in the app name, user support email, and developer contact info.</li>
