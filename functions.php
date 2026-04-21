@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'FLAIR_LTD_VERSION', '3.2.3' );
+define( 'FLAIR_LTD_VERSION', '3.2.4' );
 define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
@@ -89,6 +89,33 @@ function flairltd_body_class( $classes ) {
     return $classes;
 }
 add_filter( 'body_class', 'flairltd_body_class' );
+
+// Disable comments and feeds
+add_filter( 'comments_open', '__return_false', 20 );
+add_filter( 'pings_open', '__return_false', 20 );
+add_filter( 'comments_array', '__return_empty_array', 10, 2 );
+add_action( 'admin_menu', function() {
+    remove_menu_page( 'edit-comments.php' );
+} );
+add_action( 'admin_init', function() {
+    global $pagenow;
+    if ( $pagenow === 'comment.php' || $pagenow === 'edit-comments.php' ) {
+        wp_redirect( admin_url() );
+        exit;
+    }
+} );
+add_action( 'init', function() {
+    remove_post_type_support( 'post', 'comments' );
+    remove_post_type_support( 'page', 'comments' );
+}, 100 );
+add_action( 'wp', function() {
+    wp_deregister_script( 'comment-reply' );
+} );
+remove_action( 'wp_head', 'feed_links_extra', 3 );
+remove_action( 'wp_head', 'feed_links', 2 );
+remove_action( 'wp_head', 'rsd_link' );
+remove_action( 'wp_head', 'wlwmanifest_link' );
+remove_action( 'wp_head', 'wp_generator' );
 
 function flairltd_sync_menu_to_navigation( $menu_id ) {
     $locations = get_nav_menu_locations();

@@ -32,6 +32,10 @@ function flairltd_customize_register( $wp_customize ) {
     $wp_customize->add_control( 'flairltd_logo_padding_top', [ 'label' => __( 'Logo Padding Top (px)', 'flairfacilitiesltd' ), 'section' => 'flairltd_logo', 'type' => 'number', 'input_attrs' => [ 'min' => 0, 'max' => 100 ] ] );
     $wp_customize->add_setting( 'flairltd_logo_padding_bottom', [ 'default' => '0', 'sanitize_callback' => 'absint' ] );
     $wp_customize->add_control( 'flairltd_logo_padding_bottom', [ 'label' => __( 'Logo Padding Bottom (px)', 'flairfacilitiesltd' ), 'section' => 'flairltd_logo', 'type' => 'number', 'input_attrs' => [ 'min' => 0, 'max' => 100 ] ] );
+    $wp_customize->add_setting( 'flairltd_header_height', [ 'default' => '72', 'sanitize_callback' => 'absint' ] );
+    $wp_customize->add_control( 'flairltd_header_height', [ 'label' => __( 'Header Bar Height (px)', 'flairfacilitiesltd' ), 'section' => 'flairltd_logo', 'type' => 'number', 'input_attrs' => [ 'min' => 40, 'max' => 120 ] ] );
+    $wp_customize->add_setting( 'flairltd_header_shrunk_height', [ 'default' => '60', 'sanitize_callback' => 'absint' ] );
+    $wp_customize->add_control( 'flairltd_header_shrunk_height', [ 'label' => __( 'Header Shrunk Height (px)', 'flairfacilitiesltd' ), 'section' => 'flairltd_logo', 'type' => 'number', 'input_attrs' => [ 'min' => 40, 'max' => 120 ] ] );
 
     // Contact Info
     $wp_customize->add_section( 'flairltd_contact', [ 'title' => __( 'Contact Info', 'flairfacilitiesltd' ), 'priority' => 30 ] );
@@ -54,6 +58,8 @@ function flairltd_customizer_css() {
     $logo_h  = get_theme_mod( 'flairltd_logo_height', '0' );
     $logo_pt = get_theme_mod( 'flairltd_logo_padding_top', '0' );
     $logo_pb = get_theme_mod( 'flairltd_logo_padding_bottom', '0' );
+    $header_h = get_theme_mod( 'flairltd_header_height', '72' );
+    $header_sh = get_theme_mod( 'flairltd_header_shrunk_height', '60' );
     ?>
     <style type="text/css">
         :root {
@@ -68,6 +74,10 @@ function flairltd_customizer_css() {
             <?php if ( $logo_h > 0 ) echo 'height: ' . absint( $logo_h ) . 'px;'; ?>
             padding-top: <?php echo absint( $logo_pt ); ?>px;
             padding-bottom: <?php echo absint( $logo_pb ); ?>px;
+        }
+        :root {
+            --header-height: <?php echo absint( $header_h ); ?>px;
+            --header-shrunk: <?php echo absint( $header_sh ); ?>px;
         }
     </style>
     <?php

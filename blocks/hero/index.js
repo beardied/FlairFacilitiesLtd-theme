@@ -4,6 +4,7 @@
     var RangeControl = wp.components.RangeControl;
     var PanelBody = wp.components.PanelBody;
     var InspectorControls = wp.blockEditor.InspectorControls;
+    var MediaUpload = wp.blockEditor.MediaUpload;
 
     wp.blocks.registerBlockType('flairltd/hero', {
         edit: function(props) {
@@ -11,7 +12,21 @@
             return el('div', { style: { border: '1px dashed #666', padding: '10px', background: '#0a1628', color: '#fff' } },
                 el(InspectorControls, {},
                     el(PanelBody, { title: 'Background', initialOpen: true },
-                        el(TextControl, { label: 'Background Image URL', value: attr.backgroundImage, onChange: function(v) { props.setAttributes({backgroundImage: v}); } }),
+                        el('div', { style: { marginBottom: '12px' } },
+                            el(MediaUpload, {
+                                onSelect: function(media) {
+                                    props.setAttributes({ backgroundImage: media.url });
+                                },
+                                allowedTypes: ['image'],
+                                render: function(obj) {
+                                    return el('div', {},
+                                        attr.backgroundImage ? el('img', { src: attr.backgroundImage, style: { maxWidth: '100%', maxHeight: '120px', display: 'block', marginBottom: '8px', borderRadius: '4px' } }) : null,
+                                        el('button', { type: 'button', className: 'components-button is-secondary', onClick: obj.open }, attr.backgroundImage ? 'Change Background Image' : 'Select Background Image')
+                                    );
+                                }
+                            })
+                        ),
+                        attr.backgroundImage ? el('button', { type: 'button', className: 'components-button is-link is-destructive', style: { marginBottom: '12px' }, onClick: function() { props.setAttributes({ backgroundImage: '' }); } }, 'Remove Image') : null,
                         el(TextControl, { label: 'Overlay Colour', value: attr.overlayColor, onChange: function(v) { props.setAttributes({overlayColor: v}); } }),
                         el(RangeControl, { label: 'Overlay Opacity (%)', value: attr.overlayOpacity, min: 0, max: 100, onChange: function(v) { props.setAttributes({overlayOpacity: v}); } })
                     ),
