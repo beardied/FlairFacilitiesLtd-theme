@@ -26,6 +26,9 @@ add_action('admin_menu', function() {
 });
 
 add_action('admin_init', function() {
+    register_setting('flairltd_review_settings_group', 'flairltd_reviews_api_mode');
+    register_setting('flairltd_review_settings_group', 'flairltd_reviews_api_key');
+    register_setting('flairltd_review_settings_group', 'flairltd_reviews_place_id');
     register_setting('flairltd_review_settings_group', 'flairltd_google_client_id');
     register_setting('flairltd_review_settings_group', 'flairltd_google_client_secret');
     register_setting('flairltd_review_settings_group', 'flairltd_google_account_id');
@@ -221,6 +224,13 @@ if ( ! function_exists( 'flairltd_reviews_send_token_failure_email' ) ) {
  */
 if ( ! function_exists( 'flairltd_reviews_fetch_google_reviews' ) ) {
     function flairltd_reviews_fetch_google_reviews() {
+        $api_mode = get_option( 'flairltd_reviews_api_mode', 'places' );
+
+        if ( $api_mode === 'places' ) {
+            return flairltd_reviews_fetch_places_reviews();
+        }
+
+        // --- Business Profile API (Advanced) ---
         global $wpdb;
         $account_id = get_option('flairltd_google_account_id');
         $location_id = get_option('flairltd_google_location_id');
@@ -303,6 +313,74 @@ if ( ! function_exists( 'flairltd_reviews_fetch_google_reviews' ) ) {
 }
 
 /**
+ * Fetches reviews via the Google Places API (simple API key method).
+ * Returns reviews formatted to match the Business Profile API structure
+ * so they can be inserted by the same function.
+ */
+if ( ! function_exists( 'flairltd_reviews_fetch_places_reviews' ) ) {
+    function flairltd_reviews_fetch_places_reviews() {
+        $api_key   = get_option( 'flairltd_reviews_api_key' );
+        $place_id  = get_option( 'flairltd_reviews_place_id' );
+
+        if ( empty( $api_key ) || empty( $place_id ) ) {
+            return 'Error: Places API Key or Place ID is not set. Please enter them in the Review Management settings.';
+        }
+
+        $api_url = add_query_arg( [
+            'place_id' => $place_id,
+            'fields'   => 'reviews,rating,user_ratings_total',
+            'key'      => $api_key,
+        ], 'https://maps.googleapis.com/maps/api/place/details/json' );
+
+        $response = wp_remote_get( $api_url, [ 'timeout' => 30 ] );
+
+        if ( is_wp_error( $response ) ) {
+            return 'API request failed: ' . $response->get_error_message();
+        }
+
+        $http_code = wp_remote_retrieve_response_code( $response );
+        $body      = json_decode( wp_remote_retrieve_body( $response ), true );
+
+        if ( $http_code !== 200 || ! isset( $body['status'] ) || $body['status'] !== 'OK' ) {
+            $error_msg = isset( $body['error_message'] ) ? $body['error_message'] : 'Unknown error';
+            return "API Error (HTTP {$http_code}, Status: " . ( $body['status'] ?? 'Unknown' ) . "): {$error_msg}";
+        }
+
+        // Store aggregate rating data.
+        if ( isset( $body['result']['rating'] ) && is_numeric( $body['result']['rating'] ) ) {
+            update_option( 'flairltd_reviews_average_rating', floatval( $body['result']['rating'] ) );
+        }
+        if ( isset( $body['result']['user_ratings_total'] ) && is_numeric( $body['result']['user_ratings_total'] ) ) {
+            update_option( 'flairltd_reviews_total_count', intval( $body['result']['user_ratings_total'] ) );
+        }
+
+        $reviews     = [];
+        $rating_map  = [ 1 => 'ONE', 2 => 'TWO', 3 => 'THREE', 4 => 'FOUR', 5 => 'FIVE' ];
+        $places_reviews = $body['result']['reviews'] ?? [];
+
+        foreach ( $places_reviews as $review ) {
+            // Places API has no stable review ID, so create a deterministic hash.
+            $review_id = md5( ( $review['author_name'] ?? '' ) . '|' . ( $review['time'] ?? 0 ) . '|' . substr( $review['text'] ?? '', 0, 100 ) );
+
+            $reviews[] = [
+                'reviewId'    => $review_id,
+                'reviewer'    => [
+                    'displayName'    => $review['author_name'] ?? 'Anonymous',
+                    'profilePhotoUrl' => $review['profile_photo_url'] ?? '',
+                ],
+                'starRating'  => $rating_map[ $review['rating'] ] ?? 'FIVE',
+                'comment'     => $review['text'] ?? '',
+                'createTime'  => gmdate( 'c', $review['time'] ?? time() ),
+                'updateTime'  => gmdate( 'c', $review['time'] ?? time() ),
+                'reviewReply' => null,
+            ];
+        }
+
+        return $reviews;
+    }
+}
+
+/**
  * Inserts an array of formatted reviews into the database.
  */
 if ( ! function_exists( 'flairltd_reviews_insert_reviews' ) ) {
@@ -349,6 +427,7 @@ if ( ! function_exists( 'flairltd_reviews_insert_reviews' ) ) {
 function flairltd_reviews_management_page_html() {
     if ( ! current_user_can( 'manage_options' ) ) return;
 
+    // Handle OAuth callback (Business Profile mode only).
     if ( isset($_GET['code']) && isset($_GET['state']) && get_transient('flairltd_google_oauth_state') === $_GET['state'] ) {
         flairltd_reviews_clear_token_invalid_flag();
         flairltd_reviews_handle_google_oauth_callback($_GET['code']);
@@ -356,23 +435,108 @@ function flairltd_reviews_management_page_html() {
         exit;
     }
 
-    $client_id = get_option('flairltd_google_client_id');
-    $client_secret = get_option('flairltd_google_client_secret');
-    $account_id = get_option('flairltd_google_account_id');
-    $location_id = get_option('flairltd_google_location_id');
-    $refresh_token = get_option('flairltd_google_refresh_token');
-    $word_mappings = get_option('flairltd_reviews_word_mappings', '');
+    $api_mode        = get_option( 'flairltd_reviews_api_mode', 'places' );
+    $api_key         = get_option( 'flairltd_reviews_api_key' );
+    $place_id        = get_option( 'flairltd_reviews_place_id' );
+    $client_id       = get_option( 'flairltd_google_client_id' );
+    $client_secret   = get_option( 'flairltd_google_client_secret' );
+    $account_id      = get_option( 'flairltd_google_account_id' );
+    $location_id     = get_option( 'flairltd_google_location_id' );
+    $refresh_token   = get_option( 'flairltd_google_refresh_token' );
+    $word_mappings   = get_option( 'flairltd_reviews_word_mappings', '' );
 
     ?>
     <div class="wrap">
         <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
-        <p>Manage your Google Business Profile API connection to automatically sync reviews to your website.</p>
+        <p>Automatically sync Google reviews to your website. Choose the method that works best for you.</p>
 
-        <form method="post" action="options.php">
+        <form method="post" action="options.php" id="flairltd-reviews-settings-form">
             <?php settings_fields( 'flairltd_review_settings_group' ); ?>
 
+            <!-- API MODE SELECTION -->
             <div class="card" style="margin-top: 20px; padding: 1px 20px 20px; border: 1px solid #ccd0d4;">
-                <h2>Step 1: Enter API Credentials & Location IDs</h2>
+                <h2>&#127760; API Connection Method</h2>
+                <p>Choose how reviews are fetched from Google. The <strong>Places API</strong> is recommended for most users because it is much simpler to set up and does not suffer from token expiration issues.</p>
+                <table class="form-table" role="presentation">
+                    <tbody>
+                        <tr>
+                            <th scope="row">Select Method</th>
+                            <td>
+                                <label style="display:block; margin-bottom:8px;">
+                                    <input type="radio" name="flairltd_reviews_api_mode" value="places" <?php checked( $api_mode, 'places' ); ?>>
+                                    <strong>Places API (Recommended)</strong> — Simple API key + Place ID. Fetches the 5 most recent reviews. No OAuth, no tokens, no expiration issues.
+                                </label>
+                                <label style="display:block;">
+                                    <input type="radio" name="flairltd_reviews_api_mode" value="business_profile">
+                                    <strong>Business Profile API (Advanced)</strong> — OAuth2 + Account/Location IDs. Fetches <em>all</em> reviews with pagination. More complex setup.
+                                </label>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PLACES API SETTINGS -->
+            <div id="flairltd-places-api-settings" class="card" style="margin-top: 20px; padding: 1px 20px 20px; border: 1px solid #ccd0d4;">
+                <h2>&#128273; Places API Settings</h2>
+                <p>Enter your Google Places API key and your business Place ID below. These are the <em>only</em> two things you need.</p>
+                <details style="margin-bottom: 15px; background: #f0f6fc; padding: 10px 15px; border-radius: 4px;">
+                    <summary style="cursor:pointer; font-weight:600; color:#0969da;">&#128161; How do I get a Places API Key and Place ID?</summary>
+                    <div style="margin-top: 10px; line-height: 1.6;">
+                        <h4 style="margin: 10px 0 5px;">Step 1: Get a Google API Key</h4>
+                        <ol>
+                            <li>Go to the <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> and sign in with a Google account.</li>
+                            <li>Create a new project (or select an existing one).</li>
+                            <li>In the left menu, go to <strong>APIs &amp; Services &rarr; Library</strong>.</li>
+                            <li>Search for <strong>Places API</strong> (the classic one, not "Places API (New)" if you want zero friction).</li>
+                            <li>Click <strong>Enable</strong>.</li>
+                            <li>Go to <strong>APIs &amp; Services &rarr; Credentials</strong>.</li>
+                            <li>Click <strong>Create Credentials &rarr; API Key</strong>.</li>
+                            <li>Copy the key and paste it into the <strong>API Key</strong> field below.</li>
+                            <li><em>Optional but recommended:</em> Click the pencil icon next to your new key and set an <strong>HTTP referrer restriction</strong> to your website domain to prevent unauthorised use.</li>
+                        </ol>
+                        <h4 style="margin: 10px 0 5px;">Step 2: Find Your Place ID</h4>
+                        <ol>
+                            <li>Go to the <a href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank">Google Place ID Finder</a>.</li>
+                            <li>Enter your business name and address in the search box.</li>
+                            <li>Copy the long alphanumeric <strong>Place ID</strong> shown in the results.</li>
+                            <li>Paste it into the <strong>Place ID</strong> field below.</li>
+                        </ol>
+                        <p style="margin-top:10px; background:#fffbeb; padding:8px; border-left:3px solid #f59e0b;"><strong>Note:</strong> The Places API has a generous free tier (usually $200/month credit). For a typical small business website fetching reviews once per day, you will almost certainly stay within the free tier.</p>
+                    </div>
+                </details>
+                <table class="form-table" role="presentation">
+                    <tbody>
+                        <tr>
+                            <th scope="row"><label for="flairltd_reviews_api_key">API Key</label></th>
+                            <td><input name="flairltd_reviews_api_key" type="text" id="flairltd_reviews_api_key" value="<?php echo esc_attr( $api_key ); ?>" class="large-text" placeholder="Paste your Google Places API key here"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><label for="flairltd_reviews_place_id">Place ID</label></th>
+                            <td><input name="flairltd_reviews_place_id" type="text" id="flairltd_reviews_place_id" value="<?php echo esc_attr( $place_id ); ?>" class="large-text" placeholder="Paste your Google Place ID here (e.g. ChIJ...)" style="font-family:monospace;"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- BUSINESS PROFILE API SETTINGS -->
+            <div id="flairltd-business-profile-settings" class="card" style="margin-top: 20px; padding: 1px 20px 20px; border: 1px solid #ccd0d4;">
+                <h2>&#128272; Business Profile API Credentials</h2>
+                <p>These are only required if you selected <strong>Business Profile API (Advanced)</strong> above. This method fetches <em>all</em> reviews but requires OAuth2 authorization which can expire.</p>
+                <details style="margin-bottom: 15px; background: #f0f6fc; padding: 10px 15px; border-radius: 4px;">
+                    <summary style="cursor:pointer; font-weight:600; color:#0969da;">&#128161; How do I get these credentials?</summary>
+                    <div style="margin-top: 10px; line-height: 1.6;">
+                        <ol>
+                            <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a>.</li>
+                            <li>Create a project and enable the <strong>My Business API</strong>.</li>
+                            <li>Go to <strong>Credentials</strong> and create an <strong>OAuth 2.0 Client ID</strong> (Web application type).</li>
+                            <li>Add your site's admin URL to the <strong>Authorised redirect URIs</strong>.</li>
+                            <li>Copy the <strong>Client ID</strong> and <strong>Client Secret</strong> into the fields below.</li>
+                            <li>Click <strong>Authorize with Google</strong> below, grant permission, then use <strong>Find My IDs</strong> to get your Account and Location IDs.</li>
+                        </ol>
+                        <p style="margin-top:10px; background:#fffbeb; padding:8px; border-left:3px solid #f59e0b;"><strong>Warning:</strong> OAuth tokens can be revoked by Google (e.g. if you change your Google password). If this happens you will need to re-authorize.</p>
+                    </div>
+                </details>
                 <table class="form-table" role="presentation">
                     <tbody>
                         <tr>
@@ -393,13 +557,52 @@ function flairltd_reviews_management_page_html() {
                         </tr>
                     </tbody>
                 </table>
+
+                <?php if ( $client_id && $client_secret ) : ?>
+                <h3>Authorization</h3>
+                <?php if ( $refresh_token ) : ?>
+                    <p style="color:green; font-weight:bold;">&#x2705; System is authorized. You can re-authorize if you need to switch accounts.</p>
+                <?php else: ?>
+                    <p>Click the button below to grant this website permission to access your Google Business Profile reviews.</p>
+                <?php endif; ?>
+                <p><a href="<?php echo esc_url(flairltd_reviews_get_google_auth_url()); ?>" class="button button-primary"><?php echo $refresh_token ? 'Re-Authorize with Google' : 'Authorize with Google'; ?></a></p>
+                <?php endif; ?>
+
+                <?php if ( $refresh_token ) : ?>
+                <h3>Find Account &amp; Location IDs</h3>
+                <p>If you don't know your IDs, use this tool. Copy the numeric IDs from the results and paste them into the fields above.</p>
+                <form method="post" action="">
+                    <input type="hidden" name="flairltd_find_ids" value="true">
+                    <?php wp_nonce_field( 'flairltd_find_ids_nonce', 'flairltd_find_ids_nonce_field' ); ?>
+                    <?php submit_button( 'Find My IDs Now', 'secondary' ); ?>
+                </form>
+                <?php if ( isset($_SESSION['flairltd_api_finder_results']) ) { echo '<h4>API Results:</h4><pre style="background:#f0f0f1; padding: 10px; border-radius: 4px; white-space: pre-wrap;">' . esc_html($_SESSION['flairltd_api_finder_results']) . '</pre>'; unset($_SESSION['flairltd_api_finder_results']); } ?>
+                <?php endif; ?>
             </div>
 
+            <!-- WORD-TO-URL MAPPINGS -->
             <div class="card" style="margin-top: 20px; padding: 1px 20px 20px; border: 1px solid #ccd0d4;">
-                <h2>Word-to-URL Mappings</h2>
-                <p>Enter one mapping per line. Format: <code>word|https://example.com/page1,https://example.com/page2</code></p>
-                <p>If a review contains the word, it will be associated with all pages at the URLs listed for that word.</p>
-                 <table class="form-table" role="presentation">
+                <h2>&#128172; Word-to-URL Mappings</h2>
+                <p>Automatically associate reviews with pages on your site based on words or phrases found in the review text.</p>
+                <details style="margin-bottom: 15px; background: #f0f6fc; padding: 10px 15px; border-radius: 4px;">
+                    <summary style="cursor:pointer; font-weight:600; color:#0969da;">&#128161; How do mappings work?</summary>
+                    <div style="margin-top: 10px; line-height: 1.6;">
+                        <p>Enter one mapping per line using this format:</p>
+                        <code style="background:#f0f0f1; padding:4px 8px; border-radius:4px; display:inline-block; margin:5px 0;">word-or-phrase|https://yoursite.com/page1,https://yoursite.com/page2</code>
+                        <ul>
+                            <li><strong>Single words</strong> (e.g. <code>boiler</code>) use <em>whole-word matching</em> so "boiler" won't accidentally match "boilers".</li>
+                            <li><strong>Multi-word phrases</strong> (e.g. <code>Gas Boiler</code>) use <em>phrase matching</em> and will match anywhere the exact phrase appears.</li>
+                            <li>You can list multiple URLs separated by commas for one word/phrase.</li>
+                            <li>Mapping is case-insensitive.</li>
+                        </ul>
+                        <p><strong>Example mappings:</strong></p>
+                        <pre style="background:#f0f0f1; padding:10px; border-radius:4px;">boiler|https://dev.flairfacilities.co.uk/services/boiler-repairs/
+Gas Boiler|https://dev.flairfacilities.co.uk/services/boiler-repairs/
+plumbing|https://dev.flairfacilities.co.uk/services/plumbing/
+air con|https://dev.flairfacilities.co.uk/services/air-conditioning/</pre>
+                    </div>
+                </details>
+                <table class="form-table" role="presentation">
                     <tbody>
                         <tr>
                             <th scope="row"><label for="flairltd_reviews_word_mappings">Mappings</label></th>
@@ -412,70 +615,73 @@ function flairltd_reviews_management_page_html() {
             <?php submit_button( 'Save All Review Settings' ); ?>
         </form>
 
-        <?php if ( $client_id && $client_secret ) : ?>
-            <div class="card" style="margin-top: 20px; padding: 1px 20px 20px; border: 1px solid #ccd0d4;">
-                <h2>Step 2: Authorize Your Account</h2>
-                <?php if ( $refresh_token ) : ?>
-                    <p style="color:green; font-weight:bold;">&#x2705; System is authorized. You can re-authorize if you need to switch accounts.</p>
-                <?php else: ?>
-                    <p>Click the button below to grant this website permission to access your Google Business Profile reviews. You will only need to do this once.</p>
+        <!-- SYNC STATUS -->
+        <div class="card" style="margin-top: 20px; padding: 1px 20px 20px; border: 1px solid #ccd0d4;">
+            <h2>&#128260; Sync Status</h2>
+            <table class="form-table">
+                <?php
+                    global $wpdb;
+                    $table_name = $wpdb->prefix . 'flairltd_reviews';
+                    $total_reviews = $wpdb->get_var("SELECT COUNT(id) FROM $table_name");
+                    $next_scheduled_timestamp = wp_next_scheduled('flairltd_daily_review_fetch_event');
+                    $last_run_timestamp = get_option('flairltd_reviews_last_run');
+                    $last_run_log = get_option('flairltd_review_cron_last_log');
+                ?>
+                 <tr>
+                    <th scope="row">Active API Mode</th>
+                    <td><strong><?php echo $api_mode === 'places' ? 'Places API (5 most recent reviews)' : 'Business Profile API (all reviews)'; ?></strong></td>
+                </tr>
+                 <tr>
+                    <th scope="row">Total Reviews in Database</th>
+                    <td><strong><?php echo esc_html($total_reviews ?? '0'); ?></strong></td>
+                </tr>
+                <tr>
+                    <th scope="row">Next Scheduled Sync</th>
+                    <td data-timestamp="<?php echo esc_attr($next_scheduled_timestamp); ?>"><?php echo $next_scheduled_timestamp ? date('Y-m-d H:i:s', $next_scheduled_timestamp) . ' (UTC)' : 'Not scheduled'; ?><span class="local-time-display" style="display:none; color:#555; font-style:italic; margin-left:10px;"></span></td>
+                </tr>
+                 <tr>
+                    <th scope="row">Last Successful Sync</th>
+                    <td data-timestamp="<?php echo esc_attr($last_run_timestamp); ?>"><?php echo $last_run_timestamp ? date('Y-m-d H:i:s', $last_run_timestamp) . ' (UTC)' : 'Never'; ?><span class="local-time-display" style="display:none; color:#555; font-style:italic; margin-left:10px;"></span></td>
+                </tr>
+                <?php if ($last_run_log): ?>
+                <tr>
+                    <th scope="row">Last Sync Log</th>
+                    <td><pre style="background:#f0f0f1; padding: 10px; border-radius: 4px; white-space: pre-wrap;"><?php echo esc_html($last_run_log); ?></pre></td>
+                </tr>
                 <?php endif; ?>
-                <p><a href="<?php echo esc_url(flairltd_reviews_get_google_auth_url()); ?>" class="button button-primary"><?php echo $refresh_token ? 'Re-Authorize with Google' : 'Authorize with Google'; ?></a></p>
-            </div>
-        <?php endif; ?>
-        
-        <?php if ( $refresh_token ) : ?>
-            <div class="card" style="margin-top: 20px; padding: 1px 20px 20px; border: 1px solid #ccd0d4;">
-                 <h2>Step 3: Find Your Account & Location IDs</h2>
-                 <p>If you don't know your IDs, use this tool... Copy the numeric IDs from the results and paste them into the fields in Step 1.</p>
-                 <form method="post" action="">
-                     <input type="hidden" name="flairltd_find_ids" value="true">
-                     <?php wp_nonce_field( 'flairltd_find_ids_nonce', 'flairltd_find_ids_nonce_field' ); ?>
-                     <?php submit_button( 'Find My IDs Now', 'secondary' ); ?>
-                 </form>
-                 <?php if ( isset($_SESSION['flairltd_api_finder_results']) ) { echo '<h4>API Results:</h4><pre style="background:#f0f0f1; padding: 10px; border-radius: 4px; white-space: pre-wrap;">' . esc_html($_SESSION['flairltd_api_finder_results']) . '</pre>'; unset($_SESSION['flairltd_api_finder_results']); } ?>
-            </div>
-        <?php endif; ?>
-
-        <?php if ( $account_id && $location_id ) : ?>
-            <div class="card" style="margin-top: 20px; padding: 1px 20px 20px; border: 1px solid #ccd0d4;">
-                <h2>Step 4: Sync Status</h2>
-                <table class="form-table">
-                    <?php
-                        global $wpdb;
-                        $table_name = $wpdb->prefix . 'flairltd_reviews';
-                        $total_reviews = $wpdb->get_var("SELECT COUNT(id) FROM $table_name");
-                        $next_scheduled_timestamp = wp_next_scheduled('flairltd_daily_review_fetch_event');
-                        $last_run_timestamp = get_option('flairltd_reviews_last_run');
-                        $last_run_log = get_option('flairltd_review_cron_last_log');
-                    ?>
-                     <tr>
-                        <th scope="row">Total Reviews in Database</th>
-                        <td><strong><?php echo esc_html($total_reviews ?? '0'); ?></strong></td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Next Scheduled Sync</th>
-                        <td data-timestamp="<?php echo esc_attr($next_scheduled_timestamp); ?>"><?php echo $next_scheduled_timestamp ? date('Y-m-d H:i:s', $next_scheduled_timestamp) . ' (UTC)' : 'Not scheduled'; ?><span class="local-time-display" style="display:none; color:#555; font-style:italic; margin-left:10px;"></span></td>
-                    </tr>
-                     <tr>
-                        <th scope="row">Last Successful Sync</th>
-                        <td data-timestamp="<?php echo esc_attr($last_run_timestamp); ?>"><?php echo $last_run_timestamp ? date('Y-m-d H:i:s', $last_run_timestamp) . ' (UTC)' : 'Never'; ?><span class="local-time-display" style="display:none; color:#555; font-style:italic; margin-left:10px;"></span></td>
-                    </tr>
-                    <?php if ($last_run_log): ?>
-                    <tr>
-                        <th scope="row">Last Sync Log</th>
-                        <td><pre style="background:#f0f0f1; padding: 10px; border-radius: 4px; white-space: pre-wrap;"><?php echo esc_html($last_run_log); ?></pre></td>
-                    </tr>
-                    <?php endif; ?>
-                </table>
-                <form method="post" action="">
-                    <input type="hidden" name="flairltd_run_review_cron_now" value="true">
-                    <?php wp_nonce_field( 'flairltd_run_review_cron_nonce', 'flairltd_run_review_cron_nonce_field' ); ?>
-                    <?php submit_button( 'Sync Reviews Now', 'secondary' ); ?>
-                </form>
-            </div>
-         <?php endif; ?>
+            </table>
+            <form method="post" action="">
+                <input type="hidden" name="flairltd_run_review_cron_now" value="true">
+                <?php wp_nonce_field( 'flairltd_run_review_cron_nonce', 'flairltd_run_review_cron_nonce_field' ); ?>
+                <?php submit_button( 'Sync Reviews Now', 'secondary' ); ?>
+            </form>
+        </div>
     </div>
+
+    <script>
+    (function() {
+        const modeRadios = document.querySelectorAll('input[name="flairltd_reviews_api_mode"]');
+        const placesSettings = document.getElementById('flairltd-places-api-settings');
+        const bpSettings = document.getElementById('flairltd-business-profile-settings');
+
+        function toggleSettings() {
+            const selected = document.querySelector('input[name="flairltd_reviews_api_mode"]:checked').value;
+            if (selected === 'places') {
+                placesSettings.style.display = 'block';
+                bpSettings.style.display = 'none';
+            } else {
+                placesSettings.style.display = 'none';
+                bpSettings.style.display = 'block';
+            }
+        }
+
+        modeRadios.forEach(function(radio) {
+            radio.addEventListener('change', toggleSettings);
+        });
+
+        toggleSettings();
+    })();
+    </script>
     <?php
 }
 
@@ -915,7 +1121,19 @@ function flairltd_reviews_associate_reviews_to_posts( $reviews ) {
         $matched_post_ids = [];
 
         foreach ( $mappings as $word => $urls ) {
-            if ( preg_match( '/\b' . preg_quote( $word, '/' ) . '\b/i', $comment ) ) {
+            $found = false;
+
+            if ( strpos( $word, ' ' ) !== false ) {
+                // Multi-word phrase (e.g. "Gas Boiler"): use simple case-insensitive
+                // substring match. Word boundaries are less meaningful for phrases.
+                $found = stripos( $comment, $word ) !== false;
+            } else {
+                // Single word: use word boundary to avoid partial matches
+                // (e.g. "boiler" matching inside "boilers").
+                $found = preg_match( '/\b' . preg_quote( $word, '/' ) . '\b/i', $comment );
+            }
+
+            if ( $found ) {
                 foreach ( $urls as $url ) {
                     $post_id = url_to_postid( $url );
                     if ( $post_id ) {
