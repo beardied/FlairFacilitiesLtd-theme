@@ -13,6 +13,5 @@
         "buttonText": { "type": "string", "default": "Learn More" },
         "buttonUrl": { "type": "string", "default": "#" }
     },
-    "editorScript": "file:./index.js",
     "render": "file:./render.php"
 }

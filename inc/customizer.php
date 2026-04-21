@@ -10,24 +10,35 @@ function flairltd_customize_register( $wp_customize ) {
     $wp_customize->add_setting( 'flairltd_primary_color', [ 'default' => '#1e3a8a', 'sanitize_callback' => 'sanitize_hex_color' ] );
     $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'flairltd_primary_color', [ 'label' => __( 'Primary Blue', 'flairfacilitiesltd' ), 'section' => 'flairltd_brand' ] ) );
 
+    $wp_customize->add_setting( 'flairltd_bright_color', [ 'default' => '#2563eb', 'sanitize_callback' => 'sanitize_hex_color' ] );
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'flairltd_bright_color', [ 'label' => __( 'Bright Blue', 'flairfacilitiesltd' ), 'section' => 'flairltd_brand' ] ) );
+
     $wp_customize->add_setting( 'flairltd_accent_color', [ 'default' => '#dc2626', 'sanitize_callback' => 'sanitize_hex_color' ] );
     $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'flairltd_accent_color', [ 'label' => __( 'Accent Red', 'flairfacilitiesltd' ), 'section' => 'flairltd_brand' ] ) );
+
+    $wp_customize->add_setting( 'flairltd_orange_color', [ 'default' => '#ea580c', 'sanitize_callback' => 'sanitize_hex_color' ] );
+    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'flairltd_orange_color', [ 'label' => __( 'Orange', 'flairfacilitiesltd' ), 'section' => 'flairltd_brand' ] ) );
 
     $wp_customize->add_setting( 'flairltd_dark_color', [ 'default' => '#0a1628', 'sanitize_callback' => 'sanitize_hex_color' ] );
     $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'flairltd_dark_color', [ 'label' => __( 'Dark Navy', 'flairfacilitiesltd' ), 'section' => 'flairltd_brand' ] ) );
 
-    // Logo padding
+    // Logo Settings
     $wp_customize->add_section( 'flairltd_logo', [ 'title' => __( 'Logo Settings', 'flairfacilitiesltd' ), 'priority' => 25 ] );
+    $wp_customize->add_setting( 'flairltd_logo_width', [ 'default' => '180', 'sanitize_callback' => 'absint' ] );
+    $wp_customize->add_control( 'flairltd_logo_width', [ 'label' => __( 'Logo Width (px)', 'flairfacilitiesltd' ), 'section' => 'flairltd_logo', 'type' => 'number', 'input_attrs' => [ 'min' => 50, 'max' => 400 ] ] );
+    $wp_customize->add_setting( 'flairltd_logo_height', [ 'default' => '0', 'sanitize_callback' => 'absint' ] );
+    $wp_customize->add_control( 'flairltd_logo_height', [ 'label' => __( 'Logo Max Height (px) — 0 for auto', 'flairfacilitiesltd' ), 'section' => 'flairltd_logo', 'type' => 'number', 'input_attrs' => [ 'min' => 0, 'max' => 200 ] ] );
     $wp_customize->add_setting( 'flairltd_logo_padding_top', [ 'default' => '0', 'sanitize_callback' => 'absint' ] );
     $wp_customize->add_control( 'flairltd_logo_padding_top', [ 'label' => __( 'Logo Padding Top (px)', 'flairfacilitiesltd' ), 'section' => 'flairltd_logo', 'type' => 'number', 'input_attrs' => [ 'min' => 0, 'max' => 100 ] ] );
     $wp_customize->add_setting( 'flairltd_logo_padding_bottom', [ 'default' => '0', 'sanitize_callback' => 'absint' ] );
     $wp_customize->add_control( 'flairltd_logo_padding_bottom', [ 'label' => __( 'Logo Padding Bottom (px)', 'flairfacilitiesltd' ), 'section' => 'flairltd_logo', 'type' => 'number', 'input_attrs' => [ 'min' => 0, 'max' => 100 ] ] );
 
+    // Contact Info
     $wp_customize->add_section( 'flairltd_contact', [ 'title' => __( 'Contact Info', 'flairfacilitiesltd' ), 'priority' => 30 ] );
     $wp_customize->add_setting( 'flairltd_phone', [ 'default' => '020 7998 9005', 'sanitize_callback' => 'sanitize_text_field' ] );
-    $wp_customize->add_control( 'flairltd_phone', [ 'label' => __( 'Phone', 'flairfacilitiesltd' ), 'section' => 'flairltd_contact', 'type' => 'text' ] );
+    $wp_customize->add_control( 'flairltd_phone', [ 'label' => __( 'Phone', 'flairfacilitiesltd' ) . ' — Shortcode: [flair_phone]', 'section' => 'flairltd_contact', 'type' => 'text' ] );
     $wp_customize->add_setting( 'flairltd_email', [ 'default' => 'info@flairfacilities.co.uk', 'sanitize_callback' => 'sanitize_email' ] );
-    $wp_customize->add_control( 'flairltd_email', [ 'label' => __( 'Email', 'flairfacilitiesltd' ), 'section' => 'flairltd_contact', 'type' => 'email' ] );
+    $wp_customize->add_control( 'flairltd_email', [ 'label' => __( 'Email', 'flairfacilitiesltd' ) . ' — Shortcode: [flair_email]', 'section' => 'flairltd_contact', 'type' => 'email' ] );
     $wp_customize->add_setting( 'flairltd_address', [ 'default' => "24 Kemp House, 152 City Road\nLondon, EC1V 2NX", 'sanitize_callback' => 'sanitize_textarea_field' ] );
     $wp_customize->add_control( 'flairltd_address', [ 'label' => __( 'Address', 'flairfacilitiesltd' ), 'section' => 'flairltd_contact', 'type' => 'textarea' ] );
 }
@@ -35,19 +46,26 @@ add_action( 'customize_register', 'flairltd_customize_register' );
 
 function flairltd_customizer_css() {
     $primary = get_theme_mod( 'flairltd_primary_color', '#1e3a8a' );
+    $bright  = get_theme_mod( 'flairltd_bright_color', '#2563eb' );
     $accent  = get_theme_mod( 'flairltd_accent_color', '#dc2626' );
+    $orange  = get_theme_mod( 'flairltd_orange_color', '#ea580c' );
     $dark    = get_theme_mod( 'flairltd_dark_color', '#0a1628' );
+    $logo_w  = get_theme_mod( 'flairltd_logo_width', '180' );
+    $logo_h  = get_theme_mod( 'flairltd_logo_height', '0' );
     $logo_pt = get_theme_mod( 'flairltd_logo_padding_top', '0' );
     $logo_pb = get_theme_mod( 'flairltd_logo_padding_bottom', '0' );
     ?>
     <style type="text/css">
         :root {
             --ffl-primary: <?php echo esc_html( $primary ); ?>;
+            --ffl-bright: <?php echo esc_html( $bright ); ?>;
             --ffl-accent: <?php echo esc_html( $accent ); ?>;
+            --ffl-orange: <?php echo esc_html( $orange ); ?>;
             --ffl-dark: <?php echo esc_html( $dark ); ?>;
         }
-        .ffl-site-logo a,
         .ffl-site-logo img {
+            width: <?php echo absint( $logo_w ); ?>px;
+            <?php if ( $logo_h > 0 ) echo 'height: ' . absint( $logo_h ) . 'px;'; ?>
             padding-top: <?php echo absint( $logo_pt ); ?>px;
             padding-bottom: <?php echo absint( $logo_pb ); ?>px;
         }
@@ -55,3 +73,17 @@ function flairltd_customizer_css() {
     <?php
 }
 add_action( 'wp_head', 'flairltd_customizer_css', 100 );
+
+// Shortcodes
+function flairltd_phone_shortcode() {
+    $phone = get_theme_mod( 'flairltd_phone', '020 7998 9005' );
+    $clean = preg_replace( '/[^0-9+]/', '', $phone );
+    return '<a href="tel:' . esc_attr( $clean ) . '">' . esc_html( $phone ) . '</a>';
+}
+add_shortcode( 'flair_phone', 'flairltd_phone_shortcode' );
+
+function flairltd_email_shortcode() {
+    $email = get_theme_mod( 'flairltd_email', 'info@flairfacilities.co.uk' );
+    return '<a href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a>';
+}
+add_shortcode( 'flair_email', 'flairltd_email_shortcode' );

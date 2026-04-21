@@ -27,6 +27,5 @@
         "overlayColor": { "type": "string", "default": "#0a1628" },
         "overlayOpacity": { "type": "number", "default": 85 }
     },
-    "editorScript": "file:./index.js",
     "render": "file:./render.php"
 }

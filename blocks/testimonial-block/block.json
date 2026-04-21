@@ -12,6 +12,5 @@
         "author": { "type": "string", "default": "Client Name" },
         "rating": { "type": "number", "default": 5 }
     },
-    "editorScript": "file:./index.js",
     "render": "file:./render.php"
 }

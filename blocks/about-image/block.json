@@ -17,6 +17,5 @@
         "stat2Suffix": { "type": "string", "default": "%" },
         "stat2Label": { "type": "string", "default": "Satisfaction" }
     },
-    "editorScript": "file:./index.js",
     "render": "file:./render.php"
 }

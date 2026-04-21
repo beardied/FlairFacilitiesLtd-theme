@@ -12,6 +12,5 @@
         "suffix": { "type": "string", "default": "+" },
         "label": { "type": "string", "default": "Years Experience" }
     },
-    "editorScript": "file:./index.js",
     "render": "file:./render.php"
 }

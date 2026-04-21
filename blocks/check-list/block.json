@@ -25,6 +25,5 @@
         "item8Title": { "type": "string", "default": "" },
         "item8Description": { "type": "string", "default": "" }
     },
-    "editorScript": "file:./index.js",
     "render": "file:./render.php"
 }

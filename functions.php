@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'FLAIR_LTD_VERSION', '3.2.2' );
+define( 'FLAIR_LTD_VERSION', '3.2.3' );
 define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
@@ -60,6 +60,23 @@ function flairltd_register_blocks() {
 }
 add_action( 'init', 'flairltd_register_blocks' );
 
+function flairltd_block_editor_assets() {
+    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list' ];
+    $deps = [ 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-i18n' ];
+
+    foreach ( $blocks as $b ) {
+        $handle = 'flairltd-block-' . $b;
+        $script_path = FLAIR_LTD_DIR . 'blocks/' . $b . '/index.js';
+        $script_url  = FLAIR_LTD_URI . '/blocks/' . $b . '/index.js';
+
+        if ( file_exists( $script_path ) ) {
+            wp_register_script( $handle, $script_url, $deps, FLAIR_LTD_VERSION, true );
+            wp_enqueue_script( $handle );
+        }
+    }
+}
+add_action( 'enqueue_block_editor_assets', 'flairltd_block_editor_assets' );
+
 function flairltd_register_patterns() {
     register_block_pattern_category( 'flairltd', [ 'label' => __( 'Flair Facilities', 'flairfacilitiesltd' ) ] );
 }
@@ -72,3 +89,39 @@ function flairltd_body_class( $classes ) {
     return $classes;
 }
 add_filter( 'body_class', 'flairltd_body_class' );
+
+function flairltd_sync_menu_to_navigation( $menu_id ) {
+    $locations = get_nav_menu_locations();
+    $map = [
+        'primary' => 'Primary Navigation',
+        'footer'  => 'Footer Navigation',
+    ];
+    foreach ( $map as $location => $title ) {
+        if ( ! empty( $locations[ $location ] ) && $locations[ $location ] == $menu_id ) {
+            $items = wp_get_nav_menu_items( $menu_id );
+            if ( ! $items ) continue;
+            $blocks = [];
+            foreach ( $items as $item ) {
+                $blocks[] = '<!-- wp:navigation-link {"label":"' . esc_js( $item->title ) . '","url":"' . esc_url( $item->url ) . '","kind":"custom","isTopLevelLink":true} /-->';
+            }
+            $content = implode( "\n", $blocks );
+            $existing = get_posts( [
+                'post_type'      => 'wp_navigation',
+                'name'           => sanitize_title( $title ),
+                'posts_per_page' => 1,
+            ] );
+            if ( ! empty( $existing ) ) {
+                wp_update_post( [ 'ID' => $existing[0]->ID, 'post_content' => $content, 'post_title' => $title ] );
+            } else {
+                wp_insert_post( [
+                    'post_type'    => 'wp_navigation',
+                    'post_name'    => sanitize_title( $title ),
+                    'post_title'   => $title,
+                    'post_content' => $content,
+                    'post_status'  => 'publish',
+                ] );
+            }
+        }
+    }
+}
+add_action( 'wp_update_nav_menu', 'flairltd_sync_menu_to_navigation' );

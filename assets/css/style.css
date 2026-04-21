@@ -109,7 +109,7 @@ img { max-width: 100%; height: auto; display: block; }
     font-size: 28px;
     font-weight: 900;
     letter-spacing: -1px;
-    background: linear-gradient(135deg, #ff2d55 0%, #ff6b35 100%);
+    background: linear-gradient(135deg, var(--ffl-accent) 0%, var(--ffl-orange) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -149,6 +149,14 @@ img { max-width: 100%; height: auto; display: block; }
     max-height: 48px;
     width: auto;
     display: block;
+}
+
+.ffl-footer-nav .wp-block-navigation-item__content {
+    color: rgba(255,255,255,0.4) !important;
+    font-size: 13px;
+}
+.ffl-footer-nav .wp-block-navigation-item__content:hover {
+    color: var(--ffl-accent) !important;
 }
 
 /* Navigation overlay (dark theme) */

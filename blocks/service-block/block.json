@@ -14,6 +14,5 @@
         "buttonText": { "type": "string", "default": "Get a Quote" },
         "buttonUrl": { "type": "string", "default": "#" }
     },
-    "editorScript": "file:./index.js",
     "render": "file:./render.php"
 }
