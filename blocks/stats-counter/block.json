@@ -2,15 +2,18 @@
     "$schema": "https://schemas.wp.org/wp/6.5/block.json",
     "apiVersion": 3,
     "name": "flairltd/stats-counter",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "title": "Stats Counter",
     "category": "flairltd",
     "icon": "chart-line",
-    "description": "Animated number counter for stats.",
+    "description": "Animated number counter for stats with selectable background colour.",
     "attributes": {
         "number": { "type": "string", "default": "15" },
         "suffix": { "type": "string", "default": "+" },
-        "label": { "type": "string", "default": "Years Experience" }
+        "label": { "type": "string", "default": "Years Experience" },
+        "bgColor": { "type": "string", "default": "#1e3a8a" },
+        "bgColor2": { "type": "string", "default": "#2563eb" },
+        "bgGradient": { "type": "boolean", "default": false }
     },
     "render": "file:./render.php"
 }

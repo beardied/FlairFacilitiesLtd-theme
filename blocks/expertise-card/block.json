@@ -2,16 +2,19 @@
     "$schema": "https://schemas.wp.org/wp/6.5/block.json",
     "apiVersion": 3,
     "name": "flairltd/expertise-card",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "title": "Expertise Card",
     "category": "flairltd",
     "icon": "admin-tools",
-    "description": "A blue gradient expertise card matching the original design.",
+    "description": "A gradient expertise card with optional background image and overlay.",
     "attributes": {
         "title": { "type": "string", "default": "Boiler & Heating" },
         "description": { "type": "string", "default": "Installation and repairs." },
         "buttonText": { "type": "string", "default": "Learn More" },
-        "buttonUrl": { "type": "string", "default": "#" }
+        "buttonUrl": { "type": "string", "default": "#" },
+        "backgroundImage": { "type": "string", "default": "" },
+        "overlayColor": { "type": "string", "default": "#1e3a8a" },
+        "overlayOpacity": { "type": "number", "default": 90 }
     },
     "render": "file:./render.php"
 }

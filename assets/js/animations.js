@@ -1,5 +1,5 @@
 /**
- * FlairFacilitiesLtd — Animations + Header Shrink
+ * FlairFacilitiesLtd — Animations + Header Shrink + Scroll Progress
  */
 (function () {
     'use strict';
@@ -28,6 +28,17 @@
             } else {
                 header.classList.remove('is-scrolled');
             }
+        }, { passive: true });
+    }
+
+    /* Scroll progress bar */
+    const progressBar = document.querySelector('.ffl-scroll-progress-bar');
+    if (progressBar) {
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+            progressBar.style.width = progress + '%';
         }, { passive: true });
     }
 

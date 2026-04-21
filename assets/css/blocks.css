@@ -3,3 +3,7 @@
  */
 .editor-styles-wrapper { font-family: 'Inter', system-ui, sans-serif; }
 .ffl-expertise-card, .ffl-service-card, .ffl-testi-card { border: 1px solid #e2e8f0; }
+.ffl-expertise-card-content { display: flex; flex-direction: column; align-items: flex-start; }
+.ffl-expertise-card-content a { align-self: flex-end; }
+.ffl-expertise-card-overlay { position: absolute; inset: 0; z-index: 1; }
+.ffl-stat { border-radius: 16px; padding: 32px 24px; text-align: center; }
