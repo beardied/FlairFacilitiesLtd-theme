@@ -26,9 +26,6 @@ add_action('admin_menu', function() {
 });
 
 add_action('admin_init', function() {
-    register_setting('flairltd_review_settings_group', 'flairltd_reviews_api_mode');
-    register_setting('flairltd_review_settings_group', 'flairltd_reviews_api_key');
-    register_setting('flairltd_review_settings_group', 'flairltd_reviews_place_id');
     register_setting('flairltd_review_settings_group', 'flairltd_google_client_id');
     register_setting('flairltd_review_settings_group', 'flairltd_google_client_secret');
     register_setting('flairltd_review_settings_group', 'flairltd_google_account_id');
@@ -178,6 +175,99 @@ if ( ! function_exists( 'flairltd_reviews_clear_token_invalid_flag' ) ) {
 }
 
 /**
+ * Tests the Google API connection by making a lightweight call.
+ * Returns true on success, WP_Error on failure.
+ */
+if ( ! function_exists( 'flairltd_reviews_test_api_connection' ) ) {
+    function flairltd_reviews_test_api_connection() {
+        $access_token = flairltd_reviews_get_google_access_token();
+        if ( is_wp_error( $access_token ) ) {
+            return $access_token;
+        }
+
+        $accounts_url = 'https://mybusinessaccountmanagement.googleapis.com/v1/accounts';
+        $response = wp_remote_get( $accounts_url, [
+            'headers' => [ 'Authorization' => 'Bearer ' . $access_token ],
+            'timeout' => 15,
+        ] );
+
+        if ( is_wp_error( $response ) ) {
+            return new WP_Error( 'connection_test_network', 'Network error during test: ' . $response->get_error_message() );
+        }
+
+        $http_code = wp_remote_retrieve_response_code( $response );
+        $body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+        if ( $http_code === 200 ) {
+            return true;
+        }
+
+        if ( isset( $body['error']['message'] ) ) {
+            return new WP_Error( 'connection_test_api', 'API error: ' . $body['error']['message'] );
+        }
+
+        return new WP_Error( 'connection_test_http', 'HTTP error ' . $http_code );
+    }
+}
+
+/**
+ * Gets a human-readable token status summary for the admin page.
+ */
+if ( ! function_exists( 'flairltd_reviews_get_token_status' ) ) {
+    function flairltd_reviews_get_token_status() {
+        $refresh_token = get_option( 'flairltd_google_refresh_token' );
+        $expires_at    = get_option( 'flairltd_google_token_expires_at', 0 );
+        $is_invalid    = get_option( 'flairltd_google_token_invalid' );
+
+        if ( empty( $refresh_token ) ) {
+            return [
+                'status'  => 'missing',
+                'label'   => 'No refresh token',
+                'message' => 'Authorization required. Click "Authorize with Google" below.',
+                'colour'  => 'red',
+            ];
+        }
+
+        if ( $is_invalid ) {
+            return [
+                'status'  => 'invalid',
+                'label'   => 'Token revoked / invalid',
+                'message' => 'Your refresh token has been revoked (e.g. password change, Google security review). Re-authorization is required.',
+                'colour'  => 'red',
+            ];
+        }
+
+        $time_until_expiry = $expires_at - time();
+
+        if ( $time_until_expiry <= 0 ) {
+            return [
+                'status'  => 'expired',
+                'label'   => 'Access token expired',
+                'message' => 'The access token has expired but should auto-refresh on the next API call. If syncs keep failing, re-authorize.',
+                'colour'  => 'orange',
+            ];
+        }
+
+        if ( $time_until_expiry < 300 ) {
+            return [
+                'status'  => 'expiring',
+                'label'   => 'Expiring very soon',
+                'message' => 'The access token expires in less than 5 minutes. It will auto-refresh on the next API call.',
+                'colour'  => 'orange',
+            ];
+        }
+
+        $hours = round( $time_until_expiry / 3600, 1 );
+        return [
+            'status'  => 'valid',
+            'label'   => 'Token valid',
+            'message' => "Access token is valid for approximately {$hours} more hour(s). It will auto-refresh when needed.",
+            'colour'  => 'green',
+        ];
+    }
+}
+
+/**
  * Sends an email notification to the site admin when token authorization is needed.
  */
 if ( ! function_exists( 'flairltd_reviews_send_token_failure_email' ) ) {
@@ -224,13 +314,6 @@ if ( ! function_exists( 'flairltd_reviews_send_token_failure_email' ) ) {
  */
 if ( ! function_exists( 'flairltd_reviews_fetch_google_reviews' ) ) {
     function flairltd_reviews_fetch_google_reviews() {
-        $api_mode = get_option( 'flairltd_reviews_api_mode', 'places' );
-
-        if ( $api_mode === 'places' ) {
-            return flairltd_reviews_fetch_places_reviews();
-        }
-
-        // --- Business Profile API (Advanced) ---
         global $wpdb;
         $account_id = get_option('flairltd_google_account_id');
         $location_id = get_option('flairltd_google_location_id');
@@ -313,74 +396,6 @@ if ( ! function_exists( 'flairltd_reviews_fetch_google_reviews' ) ) {
 }
 
 /**
- * Fetches reviews via the Google Places API (simple API key method).
- * Returns reviews formatted to match the Business Profile API structure
- * so they can be inserted by the same function.
- */
-if ( ! function_exists( 'flairltd_reviews_fetch_places_reviews' ) ) {
-    function flairltd_reviews_fetch_places_reviews() {
-        $api_key   = get_option( 'flairltd_reviews_api_key' );
-        $place_id  = get_option( 'flairltd_reviews_place_id' );
-
-        if ( empty( $api_key ) || empty( $place_id ) ) {
-            return 'Error: Places API Key or Place ID is not set. Please enter them in the Review Management settings.';
-        }
-
-        $api_url = add_query_arg( [
-            'place_id' => $place_id,
-            'fields'   => 'reviews,rating,user_ratings_total',
-            'key'      => $api_key,
-        ], 'https://maps.googleapis.com/maps/api/place/details/json' );
-
-        $response = wp_remote_get( $api_url, [ 'timeout' => 30 ] );
-
-        if ( is_wp_error( $response ) ) {
-            return 'API request failed: ' . $response->get_error_message();
-        }
-
-        $http_code = wp_remote_retrieve_response_code( $response );
-        $body      = json_decode( wp_remote_retrieve_body( $response ), true );
-
-        if ( $http_code !== 200 || ! isset( $body['status'] ) || $body['status'] !== 'OK' ) {
-            $error_msg = isset( $body['error_message'] ) ? $body['error_message'] : 'Unknown error';
-            return "API Error (HTTP {$http_code}, Status: " . ( $body['status'] ?? 'Unknown' ) . "): {$error_msg}";
-        }
-
-        // Store aggregate rating data.
-        if ( isset( $body['result']['rating'] ) && is_numeric( $body['result']['rating'] ) ) {
-            update_option( 'flairltd_reviews_average_rating', floatval( $body['result']['rating'] ) );
-        }
-        if ( isset( $body['result']['user_ratings_total'] ) && is_numeric( $body['result']['user_ratings_total'] ) ) {
-            update_option( 'flairltd_reviews_total_count', intval( $body['result']['user_ratings_total'] ) );
-        }
-
-        $reviews     = [];
-        $rating_map  = [ 1 => 'ONE', 2 => 'TWO', 3 => 'THREE', 4 => 'FOUR', 5 => 'FIVE' ];
-        $places_reviews = $body['result']['reviews'] ?? [];
-
-        foreach ( $places_reviews as $review ) {
-            // Places API has no stable review ID, so create a deterministic hash.
-            $review_id = md5( ( $review['author_name'] ?? '' ) . '|' . ( $review['time'] ?? 0 ) . '|' . substr( $review['text'] ?? '', 0, 100 ) );
-
-            $reviews[] = [
-                'reviewId'    => $review_id,
-                'reviewer'    => [
-                    'displayName'    => $review['author_name'] ?? 'Anonymous',
-                    'profilePhotoUrl' => $review['profile_photo_url'] ?? '',
-                ],
-                'starRating'  => $rating_map[ $review['rating'] ] ?? 'FIVE',
-                'comment'     => $review['text'] ?? '',
-                'createTime'  => gmdate( 'c', $review['time'] ?? time() ),
-                'updateTime'  => gmdate( 'c', $review['time'] ?? time() ),
-                'reviewReply' => null,
-            ];
-        }
-
-        return $reviews;
-    }
-}
-
-/**
  * Inserts an array of formatted reviews into the database.
  */
 if ( ! function_exists( 'flairltd_reviews_insert_reviews' ) ) {
@@ -427,7 +442,7 @@ if ( ! function_exists( 'flairltd_reviews_insert_reviews' ) ) {
 function flairltd_reviews_management_page_html() {
     if ( ! current_user_can( 'manage_options' ) ) return;
 
-    // Handle OAuth callback (Business Profile mode only).
+    // Handle OAuth callback.
     if ( isset($_GET['code']) && isset($_GET['state']) && get_transient('flairltd_google_oauth_state') === $_GET['state'] ) {
         flairltd_reviews_clear_token_invalid_flag();
         flairltd_reviews_handle_google_oauth_callback($_GET['code']);
@@ -435,106 +450,106 @@ function flairltd_reviews_management_page_html() {
         exit;
     }
 
-    $api_mode        = get_option( 'flairltd_reviews_api_mode', 'places' );
-    $api_key         = get_option( 'flairltd_reviews_api_key' );
-    $place_id        = get_option( 'flairltd_reviews_place_id' );
-    $client_id       = get_option( 'flairltd_google_client_id' );
-    $client_secret   = get_option( 'flairltd_google_client_secret' );
-    $account_id      = get_option( 'flairltd_google_account_id' );
-    $location_id     = get_option( 'flairltd_google_location_id' );
-    $refresh_token   = get_option( 'flairltd_google_refresh_token' );
-    $word_mappings   = get_option( 'flairltd_reviews_word_mappings', '' );
+    $client_id       = get_option('flairltd_google_client_id');
+    $client_secret   = get_option('flairltd_google_client_secret');
+    $account_id      = get_option('flairltd_google_account_id');
+    $location_id     = get_option('flairltd_google_location_id');
+    $refresh_token   = get_option('flairltd_google_refresh_token');
+    $word_mappings   = get_option('flairltd_reviews_word_mappings', '');
+    $token_status    = flairltd_reviews_get_token_status();
+
+    $status_colours = [
+        'red'    => '#d63638',
+        'orange' => '#d97706',
+        'green'  => '#008a20',
+    ];
+    $status_colour = $status_colours[ $token_status['colour'] ] ?? '#666';
 
     ?>
     <div class="wrap">
         <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
-        <p>Automatically sync Google reviews to your website. Choose the method that works best for you.</p>
+        <p>Manage your Google Business Profile API connection to automatically sync all reviews to your website.</p>
 
-        <form method="post" action="options.php" id="flairltd-reviews-settings-form">
+        <form method="post" action="options.php">
             <?php settings_fields( 'flairltd_review_settings_group' ); ?>
 
-            <!-- API MODE SELECTION -->
+            <!-- TOKEN STATUS DASHBOARD -->
             <div class="card" style="margin-top: 20px; padding: 1px 20px 20px; border: 1px solid #ccd0d4;">
-                <h2>&#127760; API Connection Method</h2>
-                <p>Choose how reviews are fetched from Google. The <strong>Places API</strong> is recommended for most users because it is much simpler to set up and does not suffer from token expiration issues.</p>
-                <table class="form-table" role="presentation">
-                    <tbody>
-                        <tr>
-                            <th scope="row">Select Method</th>
-                            <td>
-                                <label style="display:block; margin-bottom:8px;">
-                                    <input type="radio" name="flairltd_reviews_api_mode" value="places" <?php checked( $api_mode, 'places' ); ?>>
-                                    <strong>Places API (Recommended)</strong> — Simple API key + Place ID. Fetches the 5 most recent reviews. No OAuth, no tokens, no expiration issues.
-                                </label>
-                                <label style="display:block;">
-                                    <input type="radio" name="flairltd_reviews_api_mode" value="business_profile">
-                                    <strong>Business Profile API (Advanced)</strong> — OAuth2 + Account/Location IDs. Fetches <em>all</em> reviews with pagination. More complex setup.
-                                </label>
-                            </td>
-                        </tr>
-                    </tbody>
+                <h2>&#128225; Token Status</h2>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">Status</th>
+                        <td><span style="display:inline-block; padding:4px 12px; border-radius:4px; background:<?php echo esc_attr($status_colour); ?>; color:#fff; font-weight:600;"><?php echo esc_html( $token_status['label'] ); ?></span></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Details</th>
+                        <td><?php echo esc_html( $token_status['message'] ); ?></td>
+                    </tr>
+                    <?php
+                        $last_test = get_option( 'flairltd_reviews_last_connection_test' );
+                        $last_test_result = get_option( 'flairltd_reviews_last_connection_test_result' );
+                        if ( $last_test ) :
+                    ?>
+                    <tr>
+                        <th scope="row">Last Connection Test</th>
+                        <td>
+                            <?php echo date('Y-m-d H:i:s', $last_test) . ' (UTC)'; ?>
+                            <?php if ( $last_test_result ) : ?>
+                                — <em><?php echo strpos($last_test_result, 'success') !== false ? 'Passed' : 'Failed: ' . esc_html($last_test_result); ?></em>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
                 </table>
+                <?php if ( $client_id && $client_secret ) : ?>
+                <form method="post" action="" style="display:inline-block; margin-right:10px;">
+                    <input type="hidden" name="flairltd_test_connection" value="true">
+                    <?php wp_nonce_field( 'flairltd_test_connection_nonce', 'flairltd_test_connection_nonce_field' ); ?>
+                    <?php submit_button( 'Test Connection', 'secondary', 'submit', false ); ?>
+                </form>
+                <a href="<?php echo esc_url(flairltd_reviews_get_google_auth_url()); ?>" class="button button-primary"><?php echo $refresh_token ? 'Re-Authorize with Google' : 'Authorize with Google'; ?></a>
+                <?php endif; ?>
             </div>
 
-            <!-- PLACES API SETTINGS -->
-            <div id="flairltd-places-api-settings" class="card" style="margin-top: 20px; padding: 1px 20px 20px; border: 1px solid #ccd0d4;">
-                <h2>&#128273; Places API Settings</h2>
-                <p>Enter your Google Places API key and your business Place ID below. These are the <em>only</em> two things you need.</p>
+            <!-- API CREDENTIALS -->
+            <div class="card" style="margin-top: 20px; padding: 1px 20px 20px; border: 1px solid #ccd0d4;">
+                <h2>&#128272; API Credentials &amp; Location IDs</h2>
                 <details style="margin-bottom: 15px; background: #f0f6fc; padding: 10px 15px; border-radius: 4px;">
-                    <summary style="cursor:pointer; font-weight:600; color:#0969da;">&#128161; How do I get a Places API Key and Place ID?</summary>
+                    <summary style="cursor:pointer; font-weight:600; color:#0969da;">&#128161; How to set up Google Business Profile API access</summary>
                     <div style="margin-top: 10px; line-height: 1.6;">
-                        <h4 style="margin: 10px 0 5px;">Step 1: Get a Google API Key</h4>
+                        <h4 style="margin: 10px 0 5px;">Step 1: Create OAuth Credentials</h4>
                         <ol>
-                            <li>Go to the <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> and sign in with a Google account.</li>
-                            <li>Create a new project (or select an existing one).</li>
-                            <li>In the left menu, go to <strong>APIs &amp; Services &rarr; Library</strong>.</li>
-                            <li>Search for <strong>Places API</strong> (the classic one, not "Places API (New)" if you want zero friction).</li>
-                            <li>Click <strong>Enable</strong>.</li>
+                            <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> and sign in.</li>
+                            <li>Create a new project (or use an existing one).</li>
+                            <li>Go to <strong>APIs &amp; Services &rarr; Library</strong> and enable:
+                                <ul>
+                                    <li><strong>My Business API</strong></li>
+                                    <li><strong>My Business Account Management API</strong></li>
+                                    <li><strong>My Business Business Information API</strong></li>
+                                </ul>
+                            </li>
+                            <li>Go to <strong>APIs &amp; Services &rarr; OAuth consent screen</strong>.</li>
+                            <li>Choose <strong>External</strong> and fill in the app name, user support email, and developer contact info.</li>
+                            <li><strong>IMPORTANT:</strong> Click <strong>Publish App</strong> (not just "Save"). If the app stays in "Testing" mode, refresh tokens expire after <strong>7 days</strong>! Publishing the app makes refresh tokens long-lived.</li>
                             <li>Go to <strong>APIs &amp; Services &rarr; Credentials</strong>.</li>
-                            <li>Click <strong>Create Credentials &rarr; API Key</strong>.</li>
-                            <li>Copy the key and paste it into the <strong>API Key</strong> field below.</li>
-                            <li><em>Optional but recommended:</em> Click the pencil icon next to your new key and set an <strong>HTTP referrer restriction</strong> to your website domain to prevent unauthorised use.</li>
-                        </ol>
-                        <h4 style="margin: 10px 0 5px;">Step 2: Find Your Place ID</h4>
-                        <ol>
-                            <li>Go to the <a href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank">Google Place ID Finder</a>.</li>
-                            <li>Enter your business name and address in the search box.</li>
-                            <li>Copy the long alphanumeric <strong>Place ID</strong> shown in the results.</li>
-                            <li>Paste it into the <strong>Place ID</strong> field below.</li>
-                        </ol>
-                        <p style="margin-top:10px; background:#fffbeb; padding:8px; border-left:3px solid #f59e0b;"><strong>Note:</strong> The Places API has a generous free tier (usually $200/month credit). For a typical small business website fetching reviews once per day, you will almost certainly stay within the free tier.</p>
-                    </div>
-                </details>
-                <table class="form-table" role="presentation">
-                    <tbody>
-                        <tr>
-                            <th scope="row"><label for="flairltd_reviews_api_key">API Key</label></th>
-                            <td><input name="flairltd_reviews_api_key" type="text" id="flairltd_reviews_api_key" value="<?php echo esc_attr( $api_key ); ?>" class="large-text" placeholder="Paste your Google Places API key here"></td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="flairltd_reviews_place_id">Place ID</label></th>
-                            <td><input name="flairltd_reviews_place_id" type="text" id="flairltd_reviews_place_id" value="<?php echo esc_attr( $place_id ); ?>" class="large-text" placeholder="Paste your Google Place ID here (e.g. ChIJ...)" style="font-family:monospace;"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- BUSINESS PROFILE API SETTINGS -->
-            <div id="flairltd-business-profile-settings" class="card" style="margin-top: 20px; padding: 1px 20px 20px; border: 1px solid #ccd0d4;">
-                <h2>&#128272; Business Profile API Credentials</h2>
-                <p>These are only required if you selected <strong>Business Profile API (Advanced)</strong> above. This method fetches <em>all</em> reviews but requires OAuth2 authorization which can expire.</p>
-                <details style="margin-bottom: 15px; background: #f0f6fc; padding: 10px 15px; border-radius: 4px;">
-                    <summary style="cursor:pointer; font-weight:600; color:#0969da;">&#128161; How do I get these credentials?</summary>
-                    <div style="margin-top: 10px; line-height: 1.6;">
-                        <ol>
-                            <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a>.</li>
-                            <li>Create a project and enable the <strong>My Business API</strong>.</li>
-                            <li>Go to <strong>Credentials</strong> and create an <strong>OAuth 2.0 Client ID</strong> (Web application type).</li>
-                            <li>Add your site's admin URL to the <strong>Authorised redirect URIs</strong>.</li>
+                            <li>Click <strong>Create Credentials &rarr; OAuth client ID</strong>. Choose <strong>Web application</strong>.</li>
+                            <li>Add your admin URL to <strong>Authorised redirect URIs</strong>:<br><code style="background:#f0f0f1; padding:4px 8px;"><?php echo admin_url('admin.php?page=flairltd_review_management'); ?></code></li>
                             <li>Copy the <strong>Client ID</strong> and <strong>Client Secret</strong> into the fields below.</li>
-                            <li>Click <strong>Authorize with Google</strong> below, grant permission, then use <strong>Find My IDs</strong> to get your Account and Location IDs.</li>
                         </ol>
-                        <p style="margin-top:10px; background:#fffbeb; padding:8px; border-left:3px solid #f59e0b;"><strong>Warning:</strong> OAuth tokens can be revoked by Google (e.g. if you change your Google password). If this happens you will need to re-authorize.</p>
+                        <h4 style="margin: 10px 0 5px;">Step 2: Authorize This Website</h4>
+                        <ol>
+                            <li>Paste your Client ID and Secret into the fields below and click <strong>Save</strong>.</li>
+                            <li>Click the <strong>Authorize with Google</strong> button in the Token Status section above.</li>
+                            <li>Sign in with the Google account that owns the Business Profile and grant permission.</li>
+                            <li>If you see an error about "refresh token not received", make sure you revoked any previous access at <a href="https://myaccount.google.com/permissions" target="_blank">Google Account Permissions</a> and try again.</li>
+                        </ol>
+                        <h4 style="margin: 10px 0 5px;">Step 3: Find Your Account &amp; Location IDs</h4>
+                        <ol>
+                            <li>After authorizing, click <strong>Find My IDs Now</strong> below.</li>
+                            <li>Copy the numeric Account ID and Location ID from the results.</li>
+                            <li>Paste them into the fields below and save again.</li>
+                        </ol>
+                        <p style="margin-top:10px; background:#fffbeb; padding:8px; border-left:3px solid #f59e0b;"><strong>Why do tokens expire?</strong> Google access tokens last 1 hour and auto-refresh. However, refresh tokens can be revoked if you change your Google password, revoke app access, or if the app is in "Testing" mode. <strong>Always publish your OAuth app</strong> to avoid 7-day expiry.</p>
                     </div>
                 </details>
                 <table class="form-table" role="presentation">
@@ -557,16 +572,6 @@ function flairltd_reviews_management_page_html() {
                         </tr>
                     </tbody>
                 </table>
-
-                <?php if ( $client_id && $client_secret ) : ?>
-                <h3>Authorization</h3>
-                <?php if ( $refresh_token ) : ?>
-                    <p style="color:green; font-weight:bold;">&#x2705; System is authorized. You can re-authorize if you need to switch accounts.</p>
-                <?php else: ?>
-                    <p>Click the button below to grant this website permission to access your Google Business Profile reviews.</p>
-                <?php endif; ?>
-                <p><a href="<?php echo esc_url(flairltd_reviews_get_google_auth_url()); ?>" class="button button-primary"><?php echo $refresh_token ? 'Re-Authorize with Google' : 'Authorize with Google'; ?></a></p>
-                <?php endif; ?>
 
                 <?php if ( $refresh_token ) : ?>
                 <h3>Find Account &amp; Location IDs</h3>
@@ -628,10 +633,6 @@ air con|https://dev.flairfacilities.co.uk/services/air-conditioning/</pre>
                     $last_run_log = get_option('flairltd_review_cron_last_log');
                 ?>
                  <tr>
-                    <th scope="row">Active API Mode</th>
-                    <td><strong><?php echo $api_mode === 'places' ? 'Places API (5 most recent reviews)' : 'Business Profile API (all reviews)'; ?></strong></td>
-                </tr>
-                 <tr>
                     <th scope="row">Total Reviews in Database</th>
                     <td><strong><?php echo esc_html($total_reviews ?? '0'); ?></strong></td>
                 </tr>
@@ -657,31 +658,6 @@ air con|https://dev.flairfacilities.co.uk/services/air-conditioning/</pre>
             </form>
         </div>
     </div>
-
-    <script>
-    (function() {
-        const modeRadios = document.querySelectorAll('input[name="flairltd_reviews_api_mode"]');
-        const placesSettings = document.getElementById('flairltd-places-api-settings');
-        const bpSettings = document.getElementById('flairltd-business-profile-settings');
-
-        function toggleSettings() {
-            const selected = document.querySelector('input[name="flairltd_reviews_api_mode"]:checked').value;
-            if (selected === 'places') {
-                placesSettings.style.display = 'block';
-                bpSettings.style.display = 'none';
-            } else {
-                placesSettings.style.display = 'none';
-                bpSettings.style.display = 'block';
-            }
-        }
-
-        modeRadios.forEach(function(radio) {
-            radio.addEventListener('change', toggleSettings);
-        });
-
-        toggleSettings();
-    })();
-    </script>
     <?php
 }
 
@@ -844,6 +820,30 @@ function flairltd_reviews_handle_manual_review_cron_run() {
     }
 }
 add_action( 'admin_init', 'flairltd_reviews_handle_manual_review_cron_run' );
+
+function flairltd_reviews_handle_test_connection() {
+    if ( isset( $_POST['flairltd_test_connection'] ) && isset( $_POST['flairltd_test_connection_nonce_field'] ) ) {
+        if ( ! wp_verify_nonce( $_POST['flairltd_test_connection_nonce_field'], 'flairltd_test_connection_nonce' ) ) return;
+        if ( ! current_user_can( 'manage_options' ) ) return;
+
+        $result = flairltd_reviews_test_api_connection();
+
+        if ( $result === true ) {
+            update_option( 'flairltd_reviews_last_connection_test', time() );
+            update_option( 'flairltd_reviews_last_connection_test_result', 'success' );
+            add_action('admin_notices', function() {
+                echo '<div class="notice notice-success is-dismissible"><p><strong>Connection test passed!</strong> Your Google API token is working correctly.</p></div>';
+            });
+        } else {
+            update_option( 'flairltd_reviews_last_connection_test', time() );
+            update_option( 'flairltd_reviews_last_connection_test_result', 'failed: ' . $result->get_error_message() );
+            add_action('admin_notices', function() use ( $result ) {
+                echo '<div class="notice notice-error is-dismissible"><p><strong>Connection test failed.</strong> ' . esc_html( $result->get_error_message() ) . '</p></div>';
+            });
+        }
+    }
+}
+add_action( 'admin_init', 'flairltd_reviews_handle_test_connection' );
 
 function flairltd_reviews_handle_find_ids_action() {
     if ( isset( $_POST['flairltd_find_ids'] ) && isset( $_POST['flairltd_find_ids_nonce_field'] ) ) {
