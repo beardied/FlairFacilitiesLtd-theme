@@ -30,7 +30,7 @@ add_action('admin_init', function() {
     register_setting('flairltd_review_settings_group', 'flairltd_google_client_secret');
     register_setting('flairltd_review_settings_group', 'flairltd_google_account_id');
     register_setting('flairltd_review_settings_group', 'flairltd_google_location_id');
-    register_setting('flairltd_review_settings_group', 'flairltd_reviews_stop_words');
+    register_setting('flairltd_review_settings_group', 'flairltd_reviews_word_mappings');
 });
 
 // =============================================================================
@@ -361,7 +361,7 @@ function flairltd_reviews_management_page_html() {
     $account_id = get_option('flairltd_google_account_id');
     $location_id = get_option('flairltd_google_location_id');
     $refresh_token = get_option('flairltd_google_refresh_token');
-    $stop_words = get_option('flairltd_reviews_stop_words', '');
+    $word_mappings = get_option('flairltd_reviews_word_mappings', '');
 
     ?>
     <div class="wrap">
@@ -396,13 +396,14 @@ function flairltd_reviews_management_page_html() {
             </div>
 
             <div class="card" style="margin-top: 20px; padding: 1px 20px 20px; border: 1px solid #ccd0d4;">
-                <h2>Association Stop Words</h2>
-                <p>Enter any CPT titles that you want the association engine to ignore. Add one title per line.</p>
+                <h2>Word-to-URL Mappings</h2>
+                <p>Enter one mapping per line. Format: <code>word|https://example.com/page1,https://example.com/page2</code></p>
+                <p>If a review contains the word, it will be associated with all pages at the URLs listed for that word.</p>
                  <table class="form-table" role="presentation">
                     <tbody>
                         <tr>
-                            <th scope="row"><label for="flairltd_reviews_stop_words">Words to Ignore</label></th>
-                            <td><textarea name="flairltd_reviews_stop_words" id="flairltd_reviews_stop_words" class="large-text" rows="5"><?php echo esc_textarea($stop_words); ?></textarea></td>
+                            <th scope="row"><label for="flairltd_reviews_word_mappings">Mappings</label></th>
+                            <td><textarea name="flairltd_reviews_word_mappings" id="flairltd_reviews_word_mappings" class="large-text" rows="10"><?php echo esc_textarea($word_mappings); ?></textarea></td>
                         </tr>
                     </tbody>
                 </table>
@@ -861,58 +862,71 @@ function flairltd_reviews_render_single_review_html( $review, $show_reply = true
     return $output;
 }
 
+/**
+ * Parses the word-to-URL mappings from the settings textarea.
+ *
+ * @return array Associative array: word => [urls]
+ */
+if ( ! function_exists( 'flairltd_reviews_get_word_mappings' ) ) {
+    function flairltd_reviews_get_word_mappings() {
+        $raw = get_option( 'flairltd_reviews_word_mappings', '' );
+        $lines = explode( "\n", $raw );
+        $mappings = [];
+
+        foreach ( $lines as $line ) {
+            $line = trim( $line );
+            if ( empty( $line ) ) {
+                continue;
+            }
+            $parts = explode( '|', $line, 2 );
+            if ( count( $parts ) !== 2 ) {
+                continue;
+            }
+            $word = strtolower( trim( $parts[0] ) );
+            $urls = array_map( 'trim', explode( ',', $parts[1] ) );
+            $urls = array_filter( $urls );
+            if ( ! empty( $word ) && ! empty( $urls ) ) {
+                $mappings[ $word ] = $urls;
+            }
+        }
+
+        return $mappings;
+    }
+}
+
 function flairltd_reviews_associate_reviews_to_posts( $reviews ) {
     if ( empty( $reviews ) ) {
         return 0;
     }
 
-    $stop_words_string = get_option( 'flairltd_reviews_stop_words', '' );
-    $stop_words_array = [];
-    if ( ! empty($stop_words_string) ) {
-        $stop_words_array = explode( "\n", $stop_words_string );
-        $stop_words_array = array_map( 'trim', $stop_words_array );
-        $stop_words_array = array_map( 'strtolower', $stop_words_array );
-        $stop_words_array = array_filter( $stop_words_array );
-    }
-
-    $target_cpts = ['land', 'sea', 'air', 'event', 'location'];
-    $cpt_posts = get_posts([
-        'post_type' => $target_cpts,
-        'post_status' => 'publish',
-        'numberposts' => -1,
-    ]);
-
-    if ( empty($cpt_posts) ) {
+    $mappings = flairltd_reviews_get_word_mappings();
+    if ( empty( $mappings ) ) {
         return 0;
-    }
-
-    $cpt_corpus = [];
-    foreach ($cpt_posts as $p) {
-        $cpt_corpus[$p->ID] = $p->post_title;
     }
 
     $associations_made = 0;
 
     foreach ( $reviews as $review ) {
         $comment = $review->comment ?? '';
-        if ( empty($comment) ) {
+        if ( empty( $comment ) ) {
             continue;
         }
 
         $matched_post_ids = [];
 
-        foreach ( $cpt_corpus as $post_id => $title ) {
-            if ( ! empty($stop_words_array) && in_array( strtolower($title), $stop_words_array ) ) {
-                continue;
-            }
-
-            if ( preg_match( '/\b' . preg_quote( $title, '/' ) . '\b/i', $comment ) ) {
-                $matched_post_ids[] = $post_id;
+        foreach ( $mappings as $word => $urls ) {
+            if ( preg_match( '/\b' . preg_quote( $word, '/' ) . '\b/i', $comment ) ) {
+                foreach ( $urls as $url ) {
+                    $post_id = url_to_postid( $url );
+                    if ( $post_id ) {
+                        $matched_post_ids[] = $post_id;
+                    }
+                }
             }
         }
 
         if ( ! empty( $matched_post_ids ) ) {
-            foreach ( array_unique($matched_post_ids) as $matched_post_id ) {
+            foreach ( array_unique( $matched_post_ids ) as $matched_post_id ) {
                 $existing_ids = get_post_meta( $matched_post_id, '_flairltd_associated_review_ids', true );
                 if ( ! is_array( $existing_ids ) ) {
                     $existing_ids = [];
@@ -922,7 +936,7 @@ function flairltd_reviews_associate_reviews_to_posts( $reviews ) {
                 $updated_ids = array_unique( $existing_ids );
 
                 update_post_meta( $matched_post_id, '_flairltd_associated_review_ids', $updated_ids );
-                update_post_meta( $matched_post_id, '_flairltd_associated_reviews_count', count($updated_ids) );
+                update_post_meta( $matched_post_id, '_flairltd_associated_reviews_count', count( $updated_ids ) );
 
                 $associations_made++;
             }
@@ -972,7 +986,7 @@ function flairltd_reviews_sort_by_reviews_count( $query ) {
 }
 add_action( 'pre_get_posts', 'flairltd_reviews_sort_by_reviews_count' );
 
-$target_cpts_for_columns = ['land', 'sea', 'air', 'event', 'location'];
+$target_cpts_for_columns = get_post_types( ['public' => true], 'names' );
 foreach ( $target_cpts_for_columns as $cpt ) {
     add_filter( "manage_{$cpt}_posts_columns", 'flairltd_reviews_add_reviews_admin_column' );
     add_action( "manage_{$cpt}_posts_custom_column", 'flairltd_reviews_column_content', 10, 2 );
@@ -984,7 +998,7 @@ foreach ( $target_cpts_for_columns as $cpt ) {
 // =============================================================================
 
 function flairltd_reviews_meta_box_setup() {
-    $target_cpts = ['land', 'sea', 'air', 'event', 'location'];
+    $target_cpts = get_post_types( ['public' => true], 'names' );
     foreach ( $target_cpts as $cpt ) {
         add_meta_box(
             'flairltd_associated_reviews_meta_box',
