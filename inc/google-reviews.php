@@ -517,40 +517,96 @@ function flairltd_reviews_management_page_html() {
                 <details style="margin-bottom: 15px; background: #f0f6fc; padding: 10px 15px; border-radius: 4px;">
                     <summary style="cursor:pointer; font-weight:600; color:#0969da;">&#128161; How to set up Google Business Profile API access</summary>
                     <div style="margin-top: 10px; line-height: 1.6;">
-                        <h4 style="margin: 10px 0 5px;">Step 1: Use an Existing Project (Important!)</h4>
-                        <p style="background:#fffbeb; padding:8px; border-left:3px solid #f59e0b;"><strong>The main "Google My Business API" is a restricted API.</strong> It does NOT appear in the Google Cloud Console API Library for new projects. You must use an <strong>existing project</strong> that already has this API enabled. Do not create a new project — it will not work.</p>
+                        <p style="background:#fffbeb; padding:10px; border-left:3px solid #f59e0b; margin-bottom:15px;"><strong>Important:</strong> The Google My Business API is a <strong>restricted API</strong>. Before you can use it, Google must approve your project. This is a one-time process and is completely free. Approval usually takes up to 14 days.</p>
+
+                        <h4 style="margin: 10px 0 5px;">Step 1: Check Your Business Profile Meets the Requirements</h4>
+                        <p>Google requires ALL of the following before they will approve API access:</p>
+                        <ul>
+                            <li>You have a <strong>Google Business Profile</strong> for this business.</li>
+                            <li>The profile is <strong>verified</strong> (you have completed Google's verification process).</li>
+                            <li>The profile has been <strong>active for at least 60 days</strong> since verification.</li>
+                            <li>The profile has a <strong>website URL</strong> listed on it.</li>
+                            <li>You are using a Google account that is listed as an <strong>owner or manager</strong> on the Business Profile.</li>
+                        </ul>
+
+                        <h4 style="margin: 15px 0 5px;">Step 2: Create a Google Cloud Project</h4>
                         <ol>
-                            <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> and sign in with the same Google account that owns your Business Profile.</li>
-                            <li>Select your <strong>existing project</strong> (the one that was previously set up and already has the My Business API enabled). If you are unsure which project, look for one that has existing API usage or credentials.</li>
-                            <li>Go to <strong>APIs &amp; Services &rarr; Library</strong> and enable these publicly available APIs:
+                            <li>Go to the <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> and sign in with the same Google account that owns the Business Profile.</li>
+                            <li>Click the project selector at the top and choose <strong>New Project</strong>.</li>
+                            <li>Give it a name (e.g. "Flair Facilities Reviews") and click <strong>Create</strong>.</li>
+                            <li>Once created, go to the project <strong>Dashboard</strong> and note down the <strong>Project Number</strong> shown in the "Project info" card. You will need this for the application form.</li>
+                        </ol>
+
+                        <h4 style="margin: 15px 0 5px;">Step 3: Apply for API Access</h4>
+                        <ol>
+                            <li>While still in your new project, go to <strong>APIs &amp; Services &rarr; OAuth consent screen</strong>.</li>
+                            <li>Choose <strong>External</strong> and fill in the required fields (app name, user support email, developer contact email).</li>
+                            <li>Save the consent screen (you do not need to publish it yet).</li>
+                            <li>Go to <a href="https://developers.google.com/my-business/content/prereqs" target="_blank">Google's Business Profile API Prerequisites page</a> and click the <strong>GBP API contact form</strong> link.</li>
+                            <li>Fill in the form:
+                                <ul>
+                                    <li><strong>Select an option:</strong> Choose "Application for Basic API Access".</li>
+                                    <li><strong>Project Number:</strong> Paste the Project Number from Step 2.</li>
+                                    <li><strong>Business Name:</strong> Enter your business name.</li>
+                                    <li><strong>Business Profile URL:</strong> Paste the URL of your Google Business Profile (open Google Maps, search for your business, and copy the URL).</li>
+                                </ul>
+                            </li>
+                            <li>Submit the form and wait for Google's approval email (up to 14 days).</li>
+                        </ol>
+
+                        <h4 style="margin: 15px 0 5px;">Step 4: Enable the APIs (After Approval)</h4>
+                        <p>Once Google emails you to say your project is approved:</p>
+                        <ol>
+                            <li>Go back to your project in the <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a>.</li>
+                            <li>Go to <strong>APIs &amp; Services &rarr; Library</strong>.</li>
+                            <li>Search for and enable <strong>each</strong> of the following APIs:
                                 <ul>
                                     <li><strong>My Business Account Management API</strong></li>
                                     <li><strong>My Business Business Information API</strong></li>
+                                    <li><strong>My Business Notifications API</strong></li>
+                                    <li><strong>My Business Verifications API</strong></li>
+                                    <li><strong>My Business Q&amp;A API</strong></li>
+                                    <li><strong>Business Profile Performance API</strong></li>
+                                    <li><strong>Google My Business API</strong> (this is the main one that includes Reviews — it will now appear in your library because your project is approved)</li>
                                 </ul>
-                                <em>(You will NOT find "My Business API" or "Google My Business API" in the library — this is normal. It means your project already has it, or it was enabled via a direct link when the project was first created.)</em>
                             </li>
-                            <li>Go to <strong>APIs &amp; Services &rarr; OAuth consent screen</strong>.</li>
-                            <li>Choose <strong>External</strong> and fill in the app name, user support email, and developer contact info.</li>
-                            <li><strong>IMPORTANT:</strong> Click <strong>Publish App</strong> (not just "Save"). If the app stays in "Testing" mode, refresh tokens expire after <strong>7 days</strong>! Publishing the app makes refresh tokens long-lived.</li>
-                            <li>Go to <strong>APIs &amp; Services &rarr; Credentials</strong>.</li>
-                            <li>Click <strong>Create Credentials &rarr; OAuth client ID</strong>. Choose <strong>Web application</strong>.</li>
-                            <li>Add your admin URL to <strong>Authorised redirect URIs</strong>:<br><code style="background:#f0f0f1; padding:4px 8px;"><?php echo admin_url('admin.php?page=flairltd_review_management'); ?></code></li>
-                            <li>Copy the <strong>Client ID</strong> and <strong>Client Secret</strong> into the fields below.</li>
                         </ol>
-                        <h4 style="margin: 10px 0 5px;">Step 2: Authorize This Website</h4>
+
+                        <h4 style="margin: 15px 0 5px;">Step 5: Create OAuth Credentials</h4>
                         <ol>
-                            <li>Paste your Client ID and Secret into the fields below and click <strong>Save</strong>.</li>
+                            <li>Go to <strong>APIs &amp; Services &rarr; OAuth consent screen</strong> in your project.</li>
+                            <li>Click <strong>Publish App</strong> (not just "Save"). This is critical — if the app stays in "Testing" mode, refresh tokens expire after <strong>7 days</strong>! Publishing makes them long-lived.</li>
+                            <li>Go to <strong>APIs &amp; Services &rarr; Credentials</strong>.</li>
+                            <li>Click <strong>Create Credentials &rarr; OAuth client ID</strong>.</li>
+                            <li>Choose <strong>Web application</strong>.</li>
+                            <li>Give it a name (e.g. "Flair Facilities Web").</li>
+                            <li>Under <strong>Authorised redirect URIs</strong>, click <strong>Add URI</strong> and paste:<br><code style="background:#f0f0f1; padding:4px 8px;"><?php echo admin_url('admin.php?page=flairltd_review_management'); ?></code></li>
+                            <li>Click <strong>Create</strong>.</li>
+                            <li>Copy the <strong>Client ID</strong> and <strong>Client Secret</strong> and paste them into the fields below.</li>
+                        </ol>
+
+                        <h4 style="margin: 15px 0 5px;">Step 6: Authorize This Website</h4>
+                        <ol>
+                            <li>Paste your Client ID and Secret into the fields below and click <strong>Save All Review Settings</strong>.</li>
                             <li>Click the <strong>Authorize with Google</strong> button in the Token Status section above.</li>
                             <li>Sign in with the Google account that owns the Business Profile and grant permission.</li>
-                            <li>If you see an error about "refresh token not received", make sure you revoked any previous access at <a href="https://myaccount.google.com/permissions" target="_blank">Google Account Permissions</a> and try again.</li>
+                            <li>If you get an error saying "refresh token not received", go to <a href="https://myaccount.google.com/permissions" target="_blank">Google Account Permissions</a>, revoke access for this app, then click <strong>Authorize with Google</strong> again.</li>
                         </ol>
-                        <h4 style="margin: 10px 0 5px;">Step 3: Find Your Account &amp; Location IDs</h4>
+
+                        <h4 style="margin: 15px 0 5px;">Step 7: Find Your Account &amp; Location IDs</h4>
                         <ol>
-                            <li>After authorizing, click <strong>Find My IDs Now</strong> below.</li>
+                            <li>After authorizing, click the <strong>Find My IDs Now</strong> button below.</li>
                             <li>Copy the numeric Account ID and Location ID from the results.</li>
-                            <li>Paste them into the fields below and save again.</li>
+                            <li>Paste them into the fields above and click <strong>Save All Review Settings</strong> again.</li>
                         </ol>
-                        <p style="margin-top:10px; background:#fffbeb; padding:8px; border-left:3px solid #f59e0b;"><strong>Why do tokens expire?</strong> Google access tokens last 1 hour and auto-refresh. However, refresh tokens can be revoked if you change your Google password, revoke app access, or if the app is in "Testing" mode. <strong>Always publish your OAuth app</strong> to avoid 7-day expiry.</p>
+
+                        <h4 style="margin: 15px 0 5px;">Step 8: Test &amp; Sync</h4>
+                        <ol>
+                            <li>Click <strong>Test Connection</strong> in the Token Status section to verify everything works.</li>
+                            <li>Click <strong>Sync Reviews Now</strong> to fetch your reviews for the first time.</li>
+                        </ol>
+
+                        <p style="margin-top:15px; background:#fffbeb; padding:8px; border-left:3px solid #f59e0b;"><strong>Why do tokens expire?</strong> Google access tokens last 1 hour and auto-refresh automatically. However, refresh tokens can be revoked if you change your Google password, revoke app access, or if the OAuth app is left in "Testing" mode. <strong>Always publish your OAuth app</strong> to avoid 7-day expiry. If your token is ever revoked, simply click <strong>Re-Authorize with Google</strong> to fix it.</p>
                     </div>
                 </details>
                 <table class="form-table" role="presentation">
