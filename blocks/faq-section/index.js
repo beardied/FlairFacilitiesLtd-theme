@@ -11,6 +11,10 @@
             var attr = props.attributes;
             var items = attr.items || [];
 
+            function updateTitle(value) {
+                props.setAttributes({ title: value });
+            }
+
             function updateItem(index, field, value) {
                 var newItems = items.slice();
                 newItems[index] = Object.assign({}, newItems[index], { [field]: value });
@@ -40,7 +44,13 @@
             }
 
             return el('div', { style: { border: '1px dashed #666', padding: '16px', background: '#f8fafc' } },
-                el('h3', { style: { margin: '0 0 16px', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#0a1628' } }, 'FAQ Section (' + items.length + ' items)'),
+                el(TextControl, {
+                    label: 'Section Title',
+                    value: attr.title,
+                    onChange: updateTitle,
+                    style: { marginBottom: '16px' }
+                }),
+                el('h3', { style: { margin: '0 0 16px', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#0a1628' } }, 'FAQ Items (' + items.length + ')'),
                 items.map(function(item, index) {
                     return el('div', {
                         key: index,

@@ -1,4 +1,5 @@
 <?php
+$title = ! empty( $attributes['title'] ) ? $attributes['title'] : 'Frequently Asked Questions';
 $items = ! empty( $attributes['items'] ) && is_array( $attributes['items'] ) ? $attributes['items'] : [];
 
 // Filter out empty items.
@@ -28,21 +29,25 @@ foreach ( $items as $item ) {
 if ( ! has_action( 'wp_head', 'flairltd_faq_output_schema' ) ) {
     add_action( 'wp_head', 'flairltd_faq_output_schema', 5 );
 }
-
-$block_id = 'flairltd-faq-' . wp_rand( 1000, 9999 );
 ?>
-<div class="flairltd-faq-section" id="<?php echo esc_attr( $block_id ); ?>">
+<section class="flairltd-faq-section">
+    <?php if ( $title ) : ?>
+        <h2 class="flairltd-faq-title"><?php echo esc_html( $title ); ?></h2>
+    <?php endif; ?>
+
     <div class="flairltd-faq-list">
         <?php foreach ( $items as $index => $item ) : ?>
-        <details class="flairltd-faq-item" <?php echo $index === 0 ? 'open' : ''; ?>>
-            <summary class="flairltd-faq-question">
+        <div class="flairltd-faq-item">
+            <div class="flairltd-faq-question">
+                <span class="flairltd-faq-badge flairltd-faq-badge--q">Q</span>
                 <span class="flairltd-faq-question-text"><?php echo esc_html( $item['question'] ); ?></span>
-                <span class="flairltd-faq-icon" aria-hidden="true"></span>
-            </summary>
-            <div class="flairltd-faq-answer">
-                <?php echo wp_kses_post( wpautop( $item['answer'] ) ); ?>
             </div>
-        </details>
+            <div class="flairltd-faq-divider"></div>
+            <div class="flairltd-faq-answer">
+                <span class="flairltd-faq-badge flairltd-faq-badge--a">A</span>
+                <div class="flairltd-faq-answer-text"><?php echo wp_kses_post( wpautop( $item['answer'] ) ); ?></div>
+            </div>
+        </div>
         <?php endforeach; ?>
     </div>
-</div>
+</section>

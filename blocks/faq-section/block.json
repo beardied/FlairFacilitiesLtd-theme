@@ -8,6 +8,7 @@
     "icon": "editor-help",
     "description": "An accordion-style FAQ section with JSON-LD schema markup for SEO.",
     "attributes": {
+        "title": { "type": "string", "default": "Frequently Asked Questions" },
         "items": {
             "type": "array",
             "default": [
