@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'FLAIR_LTD_VERSION', '3.5.7' );
+define( 'FLAIR_LTD_VERSION', '3.5.8' );
 define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
@@ -41,6 +41,37 @@ function flairltd_enqueue() {
     wp_enqueue_script( 'flairltd-animations', FLAIR_LTD_URI . '/assets/js/animations.js', [], FLAIR_LTD_VERSION, true );
 }
 add_action( 'wp_enqueue_scripts', 'flairltd_enqueue' );
+
+/**
+ * Register widget areas so the classic Widgets screen is available.
+ */
+function flairltd_register_sidebars() {
+    register_sidebar( [
+        'name'          => __( 'Sidebar', 'flairfacilitiesltd' ),
+        'id'            => 'flairltd-sidebar',
+        'description'   => __( 'Widgets displayed in the sidebar of the Child Hero template.', 'flairfacilitiesltd' ),
+        'before_widget' => '<div class="widget %2$s">',
+        'after_widget'  => '</div>',
+        'before_title'  => '<h4 class="widget-title">',
+        'after_title'   => '</h4>',
+    ] );
+}
+add_action( 'widgets_init', 'flairltd_register_sidebars' );
+
+/**
+ * Shortcode to render the sidebar widget area.
+ * Usage: [flair_sidebar_widgets]
+ */
+function flairltd_sidebar_widgets_shortcode() {
+    ob_start();
+    if ( is_active_sidebar( 'flairltd-sidebar' ) ) {
+        dynamic_sidebar( 'flairltd-sidebar' );
+    } else {
+        echo '<p class="flairltd-sidebar-placeholder">' . esc_html__( 'No widgets added yet. Go to Appearance → Widgets to add content to this sidebar.', 'flairfacilitiesltd' ) . '</p>';
+    }
+    return ob_get_clean();
+}
+add_shortcode( 'flair_sidebar_widgets', 'flairltd_sidebar_widgets_shortcode' );
 
 function flairltd_block_assets() {
     wp_enqueue_style( 'flairltd-blocks', FLAIR_LTD_URI . '/assets/css/blocks.css', [], FLAIR_LTD_VERSION );

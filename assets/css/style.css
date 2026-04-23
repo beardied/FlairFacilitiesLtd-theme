@@ -787,6 +787,59 @@ p.has-text-align-center,
    FAQ SECTION BLOCK
    ========================================================================== */
 
+.flairltd-sidebar .widget {
+    margin-bottom: 32px;
+}
+
+.flairltd-sidebar .widget-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--wp--preset--color--dark-navy);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--wp--preset--color--light-gray);
+}
+
+.flairltd-sidebar .widget p,
+.flairltd-sidebar .widget li {
+    font-size: 0.95rem;
+    color: #475569;
+    line-height: 1.6;
+}
+
+.flairltd-sidebar .widget ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.flairltd-sidebar .widget ul li {
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.flairltd-sidebar .widget ul li:last-child {
+    border-bottom: none;
+}
+
+.flairltd-sidebar .widget a {
+    color: var(--wp--preset--color--primary-blue);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.flairltd-sidebar .widget a:hover {
+    color: var(--wp--preset--color--accent-red);
+}
+
+.flairltd-sidebar-placeholder {
+    color: #94a3b8;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
 .flairltd-faq-section {
     margin: 0;
 }
