@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'FLAIR_LTD_VERSION', '3.5.6' );
+define( 'FLAIR_LTD_VERSION', '3.5.7' );
 define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
@@ -53,7 +53,7 @@ function flairltd_block_categories( $cats ) {
 add_filter( 'block_categories_all', 'flairltd_block_categories', 10, 1 );
 
 function flairltd_register_blocks() {
-    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list' ];
+    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list', 'faq-section' ];
     foreach ( $blocks as $b ) {
         register_block_type( FLAIR_LTD_DIR . 'blocks/' . $b );
     }
@@ -61,7 +61,7 @@ function flairltd_register_blocks() {
 add_action( 'init', 'flairltd_register_blocks' );
 
 function flairltd_block_editor_assets() {
-    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list' ];
+    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list', 'faq-section' ];
     $deps = [ 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-i18n' ];
 
     foreach ( $blocks as $b ) {
@@ -76,6 +76,37 @@ function flairltd_block_editor_assets() {
     }
 }
 add_action( 'enqueue_block_editor_assets', 'flairltd_block_editor_assets' );
+
+/**
+ * Output JSON-LD FAQPage schema in the <head> when FAQ blocks are present.
+ */
+function flairltd_faq_output_schema() {
+    if ( empty( $GLOBALS['flairltd_faq_schema_data'] ) || ! is_array( $GLOBALS['flairltd_faq_schema_data'] ) ) {
+        return;
+    }
+
+    $faq_data = $GLOBALS['flairltd_faq_schema_data'];
+    $main_entity = [];
+
+    foreach ( $faq_data as $item ) {
+        $main_entity[] = [
+            '@type'          => 'Question',
+            'name'           => wp_strip_all_tags( $item['question'] ),
+            'acceptedAnswer' => [
+                '@type' => 'Answer',
+                'text'  => wp_strip_all_tags( $item['answer'] ),
+            ],
+        ];
+    }
+
+    $schema = [
+        '@context'   => 'https://schema.org',
+        '@type'      => 'FAQPage',
+        'mainEntity' => $main_entity,
+    ];
+
+    echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . '</script>' . "\n";
+}
 
 function flairltd_register_patterns() {
     register_block_pattern_category( 'flairltd', [ 'label' => __( 'Flair Facilities', 'flairfacilitiesltd' ) ] );

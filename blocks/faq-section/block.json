@@ -1,0 +1,19 @@
+{
+    "$schema": "https://schemas.wp.org/wp/6.5/block.json",
+    "apiVersion": 3,
+    "name": "flairltd/faq-section",
+    "version": "1.0.0",
+    "title": "FAQ Section",
+    "category": "flairltd",
+    "icon": "editor-help",
+    "description": "An accordion-style FAQ section with JSON-LD schema markup for SEO.",
+    "attributes": {
+        "items": {
+            "type": "array",
+            "default": [
+                { "question": "What services do you offer?", "answer": "We offer a full range of facilities management services including heating, plumbing, electrical, and air conditioning." }
+            ]
+        }
+    },
+    "render": "file:./render.php"
+}
