@@ -18,7 +18,8 @@
         "stat2Label": { "type": "string", "default": "Satisfaction" },
         "statBgColor": { "type": "string", "default": "#0a1628" },
         "statBgColor2": { "type": "string", "default": "#1e3a8a" },
-        "statBgGradient": { "type": "boolean", "default": false }
+        "statBgGradient": { "type": "boolean", "default": false },
+        "animate": { "type": "boolean", "default": true }
     },
     "render": "file:./render.php"
 }

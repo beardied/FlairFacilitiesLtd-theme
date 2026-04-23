@@ -13,7 +13,8 @@
         "label": { "type": "string", "default": "Years Experience" },
         "bgColor": { "type": "string", "default": "#1e3a8a" },
         "bgColor2": { "type": "string", "default": "#2563eb" },
-        "bgGradient": { "type": "boolean", "default": false }
+        "bgGradient": { "type": "boolean", "default": false },
+        "animate": { "type": "boolean", "default": true }
     },
     "render": "file:./render.php"
 }

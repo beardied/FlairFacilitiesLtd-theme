@@ -39,7 +39,8 @@
                     el(PanelBody, { title: 'Stats Overlay Background' },
                         el(SelectControl, { label: 'Background Colour', value: attr.statBgColor, options: brandColors, onChange: function(v) { props.setAttributes({statBgColor: v}); } }),
                         el(ToggleControl, { label: 'Use Gradient', checked: attr.statBgGradient, onChange: function(v) { props.setAttributes({statBgGradient: v}); } }),
-                        attr.statBgGradient ? el(SelectControl, { label: 'Gradient Second Colour', value: attr.statBgColor2, options: brandColors, onChange: function(v) { props.setAttributes({statBgColor2: v}); } }) : null
+                        attr.statBgGradient ? el(SelectControl, { label: 'Gradient Second Colour', value: attr.statBgColor2, options: brandColors, onChange: function(v) { props.setAttributes({statBgColor2: v}); } }) : null,
+                        el(ToggleControl, { label: 'Animate on Scroll', checked: attr.animate, onChange: function(v) { props.setAttributes({animate: v}); } })
                     ),
                     el(PanelBody, { title: 'Stat 1' },
                         el(TextControl, { label: 'Number', value: attr.stat1Number, onChange: function(v) { props.setAttributes({stat1Number: v}); } }),

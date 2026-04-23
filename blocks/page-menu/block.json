@@ -1,0 +1,18 @@
+{
+    "$schema": "https://schemas.wp.org/wp/6.5/block.json",
+    "apiVersion": 3,
+    "name": "flairltd/page-menu",
+    "version": "1.0.0",
+    "title": "Page Menu",
+    "category": "flairltd",
+    "icon": "menu",
+    "description": "Displays the current page's parent and sibling pages in a styled navigation menu.",
+    "attributes": {
+        "title": { "type": "string", "default": "In This Section" },
+        "bgColor": { "type": "string", "default": "#f8fafc" },
+        "bgColor2": { "type": "string", "default": "#e2e8f0" },
+        "bgGradient": { "type": "boolean", "default": false },
+        "animate": { "type": "boolean", "default": true }
+    },
+    "render": "file:./render.php"
+}

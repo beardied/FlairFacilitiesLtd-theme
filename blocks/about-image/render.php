@@ -10,6 +10,7 @@ $s2l    = ! empty( $attributes['stat2Label'] ) ? $attributes['stat2Label'] : 'Sa
 $bg     = ! empty( $attributes['statBgColor'] ) ? $attributes['statBgColor'] : '#0a1628';
 $bg2    = ! empty( $attributes['statBgColor2'] ) ? $attributes['statBgColor2'] : '#1e3a8a';
 $grad   = ! empty( $attributes['statBgGradient'] );
+$animate = ! isset( $attributes['animate'] ) || $attributes['animate'];
 
 if ( ! $url ) {
     $url = get_template_directory_uri() . '/assets/images/engineer.jpg';
@@ -21,8 +22,10 @@ if ( $grad ) {
 } else {
     $stat_style = 'background: ' . esc_attr( $bg ) . ';';
 }
+
+$wrapper_class = $animate ? ' ffl-fade-up' : '';
 ?>
-<div style="position:relative;border-radius:16px;overflow:hidden">
+<div class="<?php echo esc_attr( trim( $wrapper_class ) ); ?>" style="position:relative;border-radius:16px;overflow:hidden">
     <img src="<?php echo esc_url( $url ); ?>" alt="<?php echo esc_attr( $alt ); ?>" style="width:100%;height:500px;object-fit:cover">
     <div style="position:absolute;bottom:24px;left:24px;right:24px;border-radius:14px;padding:24px;display:flex;gap:40px;backdrop-filter:blur(10px);<?php echo esc_attr( $stat_style ); ?>">
         <div>

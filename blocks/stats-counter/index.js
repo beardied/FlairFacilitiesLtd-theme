@@ -27,7 +27,8 @@
                     el(PanelBody, { title: 'Background Colour' },
                         el(SelectControl, { label: 'Background Colour', value: attr.bgColor, options: brandColors, onChange: function(v) { props.setAttributes({bgColor: v}); } }),
                         el(ToggleControl, { label: 'Use Gradient', checked: attr.bgGradient, onChange: function(v) { props.setAttributes({bgGradient: v}); } }),
-                        attr.bgGradient ? el(SelectControl, { label: 'Gradient Second Colour', value: attr.bgColor2, options: brandColors, onChange: function(v) { props.setAttributes({bgColor2: v}); } }) : null
+                        attr.bgGradient ? el(SelectControl, { label: 'Gradient Second Colour', value: attr.bgColor2, options: brandColors, onChange: function(v) { props.setAttributes({bgColor2: v}); } }) : null,
+                        el(ToggleControl, { label: 'Animate on Scroll', checked: attr.animate, onChange: function(v) { props.setAttributes({animate: v}); } })
                     )
                 ),
                 'Stat: ' + attr.number + attr.suffix

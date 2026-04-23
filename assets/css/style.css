@@ -789,6 +789,12 @@ p.has-text-align-center,
 
 .flairltd-faq-section {
     margin: 0;
+    padding: 80px 24px;
+}
+
+.flairltd-faq-inner {
+    max-width: var(--wp--style--global--wide-size);
+    margin: 0 auto;
 }
 
 .flairltd-faq-title {
@@ -890,6 +896,9 @@ p.has-text-align-center,
 
 /* Mobile */
 @media (max-width: 600px) {
+    .flairltd-faq-section {
+        padding: 60px 20px;
+    }
     .flairltd-faq-title {
         font-size: var(--wp--preset--font-size--2xl);
         margin-bottom: 32px;
@@ -909,6 +918,131 @@ p.has-text-align-center,
     }
     .flairltd-faq-divider {
         margin-left: 0;
+    }
+}
+
+/* ==========================================================================
+   PAGE MENU BLOCK
+   ========================================================================== */
+
+.flairltd-page-menu {
+    margin: 0;
+    padding: 60px 24px;
+}
+
+.flairltd-page-menu-inner {
+    max-width: var(--wp--style--global--wide-size);
+    margin: 0 auto;
+}
+
+.flairltd-page-menu-title {
+    text-align: center;
+    font-size: var(--wp--preset--font-size--3xl);
+    font-weight: 800;
+    color: var(--wp--preset--color--dark-navy);
+    margin: 0 0 32px;
+    line-height: 1.2;
+}
+
+.flairltd-page-menu-parent {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.flairltd-page-menu-parent-link {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    padding: 16px 32px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(10, 22, 40, 0.06);
+    transition: box-shadow 0.25s ease, transform 0.2s ease;
+}
+
+.flairltd-page-menu-parent-link:hover {
+    box-shadow: 0 8px 24px rgba(10, 22, 40, 0.1);
+    transform: translateY(-2px);
+}
+
+.flairltd-page-menu-parent-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--wp--preset--color--muted);
+    margin-bottom: 4px;
+}
+
+.flairltd-page-menu-parent-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--wp--preset--color--primary-blue);
+}
+
+.flairltd-page-menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.flairltd-page-menu-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--wp--preset--color--dark-navy);
+    font-weight: 600;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.25s ease, transform 0.2s ease;
+}
+
+.flairltd-page-menu-link:hover {
+    background: var(--wp--preset--color--primary-blue);
+    border-color: var(--wp--preset--color--primary-blue);
+    color: #ffffff;
+    box-shadow: 0 8px 24px rgba(30, 58, 138, 0.2);
+    transform: translateY(-2px);
+}
+
+.flairltd-page-menu-link:hover .flairltd-page-menu-arrow {
+    stroke: #ffffff;
+    transform: translateX(4px);
+}
+
+.flairltd-page-menu-arrow {
+    stroke: var(--wp--preset--color--muted);
+    flex-shrink: 0;
+    transition: stroke 0.2s ease, transform 0.2s ease;
+}
+
+.flairltd-page-menu-empty {
+    text-align: center;
+    color: var(--wp--preset--color--muted);
+    font-style: italic;
+}
+
+@media (max-width: 600px) {
+    .flairltd-page-menu {
+        padding: 48px 20px;
+    }
+    .flairltd-page-menu-title {
+        font-size: var(--wp--preset--font-size--2xl);
+        margin-bottom: 24px;
+    }
+    .flairltd-page-menu-list {
+        grid-template-columns: 1fr;
+    }
+    .flairltd-page-menu-link {
+        padding: 16px 18px;
     }
 }
 
