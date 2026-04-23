@@ -782,3 +782,62 @@ p.has-text-align-center,
     .ffl-topbar-inner { flex-direction: column; gap: 2px; font-size: 11px; }
     .ffl-logo-main { font-size: 24px; }
 }
+
+/* ==========================================================================
+   CHILD HERO TEMPLATE
+   ========================================================================== */
+
+/* Hero section */
+.ffl-child-hero .wp-block-cover__inner-container {
+    width: 100%;
+    max-width: var(--wp--style--global--content-size);
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 24px;
+}
+
+.ffl-child-hero .wp-block-post-title {
+    text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+
+/* Two-column layout */
+.ffl-child-hero-columns {
+    gap: 48px !important;
+}
+
+.ffl-child-hero-sidebar {
+    padding-left: 32px;
+    border-left: 1px solid var(--wp--preset--color--light-gray);
+}
+
+.ffl-sidebar {
+    position: sticky;
+    top: calc(var(--header-height) + 40px);
+}
+
+.ffl-sidebar .wp-block-heading {
+    color: var(--wp--preset--color--dark-navy);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Mobile: content before sidebar (columns stack naturally) */
+@media (max-width: 781px) {
+    .ffl-child-hero-columns {
+        gap: 48px !important;
+    }
+    .ffl-child-hero-sidebar {
+        padding-left: 0;
+        border-left: none;
+        border-top: 1px solid var(--wp--preset--color--light-gray);
+        padding-top: 40px;
+    }
+    .ffl-sidebar {
+        position: static;
+    }
+    .ffl-child-hero {
+        min-height: 280px !important;
+        padding-top: 80px !important;
+        padding-bottom: 80px !important;
+    }
+}

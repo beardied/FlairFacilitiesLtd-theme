@@ -76,6 +76,7 @@
         { "name": "footer", "area": "footer" }
     ],
     "customTemplates": [
-        { "name": "front-page", "title": "Front Page", "postTypes": ["page"] }
+        { "name": "front-page", "title": "Front Page", "postTypes": ["page"] },
+        { "name": "child-hero", "title": "Child Hero", "postTypes": ["page"] }
     ]
 }
