@@ -29,7 +29,7 @@ if ( $animate && $grad ) {
 }
 ?>
 <div style="position:relative;border-radius:16px;overflow:hidden">
-    <img src="<?php echo esc_url( $url ); ?>" alt="<?php echo esc_attr( $alt ); ?>" style="width:100%;height:500px;object-fit:cover">
+    <img src="<?php echo esc_url( $url ); ?>" alt="<?php echo esc_attr( $alt ); ?>" style="width:100%;height:500px;object-fit:cover" class="skip-lazy" loading="eager" decoding="async">
     <div class="ffl-about-stats <?php echo esc_attr( $stat_class ); ?>" style="<?php echo esc_attr( $stat_style ); ?>">
         <div class="ffl-about-stat">
             <div class="ffl-about-stat__num"><?php echo esc_html( $s1n . $s1s ); ?></div>
