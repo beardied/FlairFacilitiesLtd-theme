@@ -27,6 +27,7 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+html { overflow-x: hidden; }
 body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     line-height: 1.65;
@@ -845,10 +846,12 @@ p.has-text-align-center,
     .ffl-hero-card { order: -1; max-width: 100%; }
     .ffl-hero {
         min-height: auto;
-        width: 100%;
-        margin-left: 0;
-        margin-right: 0;
+        width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        margin-right: calc(-50vw + 50%);
     }
+    .ffl-hero-inner { max-width: 100%; }
+    .ffl-hero-content { overflow-wrap: break-word; }
     .ffl-hero h1 { font-size: 1.9rem; overflow-wrap: break-word; }
     .ffl-header-inner { padding: 0 16px; }
     .ffl-expertise-card, .ffl-service-card { padding: 28px 20px; }

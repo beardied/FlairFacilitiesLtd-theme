@@ -1012,17 +1012,11 @@ function flairltd_reviews_recent_reviews_shortcode_handler( $atts ) {
             btn.addEventListener('click', function() {
                 var wrapper = btn.closest('.flairltd-review-card__comment-wrapper');
                 var truncated = wrapper.querySelector('.flairltd-review-card__comment--truncated');
-                var fullText = wrapper.querySelector('.flairltd-review-card__full-text');
+                var fullText = wrapper.querySelector('.flairltd-review-card__comment--full');
                 if (truncated && fullText) {
-                    if (fullText.style.display === 'none') {
-                        fullText.style.display = '';
-                        truncated.style.display = 'none';
-                        btn.textContent = 'Read Less';
-                    } else {
-                        fullText.style.display = 'none';
-                        truncated.style.display = '';
-                        btn.textContent = 'Read More';
-                    }
+                    fullText.style.display = '';
+                    truncated.style.display = 'none';
+                    btn.style.display = 'none';
                 }
             });
         });
@@ -1122,7 +1116,7 @@ function flairltd_reviews_render_single_review_html( $review, $show_reply = true
         $words = explode(' ', $review->comment);
         if ( $truncate && count($words) > $word_limit ) {
             $truncated_text = implode(' ', array_slice($words, 0, $word_limit)) . '...';
-            $comment_html = '<div class="flairltd-review-card__comment-wrapper"><p class="flairltd-review-card__comment flairltd-review-card__comment--truncated">' . nl2br(esc_html($truncated_text)) . '</p><span class="flairltd-review-card__full-text" style="display:none;">' . $comment_text . '</span><span class="flairltd-review-card__read-more">Read More</span></div>';
+            $comment_html = '<div class="flairltd-review-card__comment-wrapper"><p class="flairltd-review-card__comment flairltd-review-card__comment--truncated">' . nl2br(esc_html($truncated_text)) . '</p><p class="flairltd-review-card__comment flairltd-review-card__comment--full" style="display:none;">' . $comment_text . '</p><span class="flairltd-review-card__read-more">Read More</span></div>';
         } else {
             $comment_html = '<div class="flairltd-review-card__comment-wrapper"><p class="flairltd-review-card__comment">' . $comment_text . '</p></div>';
         }
