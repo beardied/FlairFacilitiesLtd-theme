@@ -493,7 +493,7 @@ p.has-text-align-center,
     backdrop-filter: blur(20px);
     box-shadow: 0 30px 80px rgba(0,0,0,0.3);
 }
-.ffl-hero-card-title {
+.ffl-hero-card .ffl-hero-card-title {
     font-size: 18px;
     font-weight: 700;
     color: #fff;
@@ -903,7 +903,7 @@ p.has-text-align-center,
 
 @media (max-width: 600px) {
     .ffl-hero-inner { padding: 32px 16px; }
-    .ffl-hero-card-title { font-size: 16px; }
+    .ffl-hero-card .ffl-hero-card-title { font-size: 16px; }
     .ffl-hero-card { padding: 24px; }
     .flairltd-reviews-container { grid-template-columns: 1fr; }
     .ffl-btn { padding: 13px 22px; font-size: 14px; width: 100%; justify-content: center; }
