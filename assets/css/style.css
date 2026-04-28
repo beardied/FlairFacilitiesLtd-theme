@@ -846,13 +846,12 @@ p.has-text-align-center,
     .ffl-hero-card { max-width: 100%; }
     .ffl-hero {
         min-height: auto;
-        width: 100vw;
-        margin-left: calc(-50vw + 50%);
-        margin-right: calc(-50vw + 50%);
+        width: calc(100% + 40px);
+        margin-left: -20px;
+        margin-right: -20px;
     }
-    .ffl-hero-inner { max-width: 100%; }
+    .ffl-hero-inner { max-width: 100%; overflow-wrap: break-word; }
     .ffl-hero-content { overflow-wrap: break-word; }
-    .ffl-hero h1 { font-size: 1.9rem; overflow-wrap: break-word; }
     .ffl-header-inner { padding: 0 16px; }
     .ffl-expertise-card, .ffl-service-card { padding: 28px 20px; }
     .ffl-topbar-inner { padding: 0 16px; }
@@ -862,7 +861,7 @@ p.has-text-align-center,
 
 @media (max-width: 600px) {
     .ffl-hero-inner { padding: 32px 16px; }
-    .ffl-hero h1 { font-size: 1.55rem; overflow-wrap: break-word; }
+    .ffl-hero-card h3 { font-size: 16px; }
     .ffl-hero-card { padding: 24px; }
     .flairltd-reviews-container { grid-template-columns: 1fr; }
     .ffl-btn { padding: 13px 22px; font-size: 14px; width: 100%; justify-content: center; }

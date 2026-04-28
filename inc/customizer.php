@@ -152,6 +152,14 @@ function flairltd_customizer_css() {
         h4, .ffl-footer-heading { font-size: var(--ffl-h4-size) !important; }
         h5 { font-size: var(--ffl-h5-size) !important; }
         h6 { font-size: var(--ffl-h6-size) !important; }
+        @media (max-width: 600px) {
+            h1 { font-size: calc(var(--ffl-h1-size) * 0.65) !important; }
+            h2 { font-size: calc(var(--ffl-h2-size) * 0.70) !important; }
+            h3 { font-size: calc(var(--ffl-h3-size) * 0.75) !important; }
+            h4, .ffl-footer-heading { font-size: calc(var(--ffl-h4-size) * 0.80) !important; }
+            h5 { font-size: calc(var(--ffl-h5-size) * 0.85) !important; }
+            h6 { font-size: calc(var(--ffl-h6-size) * 0.85) !important; }
+        }
         .ffl-footer.has-background { background-color: var(--ffl-dark) !important; }
         body.has-fullwidth-last-block main.wp-block-group.alignfull {
             padding-bottom: 0 !important;
