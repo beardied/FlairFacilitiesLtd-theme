@@ -15,7 +15,7 @@
                         el('div', { style: { marginBottom: '12px' } },
                             el(MediaUpload, {
                                 onSelect: function(media) {
-                                    props.setAttributes({ backgroundImage: media.url });
+                                    props.setAttributes({ backgroundImageId: media.id, backgroundImage: media.url });
                                 },
                                 allowedTypes: ['image'],
                                 render: function(obj) {
@@ -26,7 +26,7 @@
                                 }
                             })
                         ),
-                        attr.backgroundImage ? el('button', { type: 'button', className: 'components-button is-link is-destructive', style: { marginBottom: '12px' }, onClick: function() { props.setAttributes({ backgroundImage: '' }); } }, 'Remove Image') : null,
+                        attr.backgroundImage ? el('button', { type: 'button', className: 'components-button is-link is-destructive', style: { marginBottom: '12px' }, onClick: function() { props.setAttributes({ backgroundImageId: 0, backgroundImage: '' }); } }, 'Remove Image') : null,
                         el(TextControl, { label: 'Overlay Colour', value: attr.overlayColor, onChange: function(v) { props.setAttributes({overlayColor: v}); } }),
                         el(RangeControl, { label: 'Overlay Opacity (%)', value: attr.overlayOpacity, min: 0, max: 100, onChange: function(v) { props.setAttributes({overlayOpacity: v}); } })
                     ),

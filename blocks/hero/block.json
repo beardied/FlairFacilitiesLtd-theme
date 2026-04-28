@@ -68,6 +68,10 @@
             "type": "string",
             "default": "/contact-us/"
         },
+        "backgroundImageId": {
+            "type": "number",
+            "default": 0
+        },
         "backgroundImage": {
             "type": "string",
             "default": ""

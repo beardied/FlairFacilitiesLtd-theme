@@ -14,7 +14,11 @@ $cBtn1Text  = ! empty( $attributes['cardBtn1Text'] ) ? $attributes['cardBtn1Text
 $cBtn1Url   = ! empty( $attributes['cardBtn1Url'] ) ? $attributes['cardBtn1Url'] : '#';
 $cBtn2Text  = ! empty( $attributes['cardBtn2Text'] ) ? $attributes['cardBtn2Text'] : '';
 $cBtn2Url   = ! empty( $attributes['cardBtn2Url'] ) ? $attributes['cardBtn2Url'] : '#';
+$bgImageId  = ! empty( $attributes['backgroundImageId'] ) ? intval( $attributes['backgroundImageId'] ) : 0;
 $bgImage    = ! empty( $attributes['backgroundImage'] ) ? $attributes['backgroundImage'] : '';
+if ( $bgImageId ) {
+    $bgImage = wp_get_attachment_image_url( $bgImageId, 'full' );
+}
 $ovColor    = ! empty( $attributes['overlayColor'] ) ? $attributes['overlayColor'] : get_theme_mod( 'flairltd_dark_color', '#0a1628' );
 $ovOpacity  = isset( $attributes['overlayOpacity'] ) ? intval( $attributes['overlayOpacity'] ) : 85;
 

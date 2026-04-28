@@ -24,6 +24,10 @@
             "type": "string",
             "default": "#"
         },
+        "backgroundImageId": {
+            "type": "number",
+            "default": 0
+        },
         "backgroundImage": {
             "type": "string",
             "default": ""

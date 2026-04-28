@@ -8,6 +8,10 @@
     "icon": "format-image",
     "description": "Image with rounded corners and stats overlay with selectable background colour.",
     "attributes": {
+        "imageId": {
+            "type": "number",
+            "default": 0
+        },
         "imageUrl": {
             "type": "string",
             "default": ""

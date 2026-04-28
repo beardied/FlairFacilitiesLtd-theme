@@ -3,7 +3,11 @@ $title  = ! empty( $attributes['title'] ) ? $attributes['title'] : 'Boiler & Hea
 $desc   = ! empty( $attributes['description'] ) ? $attributes['description'] : 'Installation and repairs.';
 $btn    = ! empty( $attributes['buttonText'] ) ? $attributes['buttonText'] : 'Learn More';
 $url    = ! empty( $attributes['buttonUrl'] ) ? $attributes['buttonUrl'] : '#';
+$bgImgId = ! empty( $attributes['backgroundImageId'] ) ? intval( $attributes['backgroundImageId'] ) : 0;
 $bgImg  = ! empty( $attributes['backgroundImage'] ) ? $attributes['backgroundImage'] : '';
+if ( $bgImgId ) {
+    $bgImg = wp_get_attachment_image_url( $bgImgId, 'large' );
+}
 $ovColor = ! empty( $attributes['overlayColor'] ) ? $attributes['overlayColor'] : get_theme_mod( 'flairltd_primary_color', '#1e3a8a' );
 $ovOp   = isset( $attributes['overlayOpacity'] ) ? intval( $attributes['overlayOpacity'] ) : 90;
 $titleColor = ! empty( $attributes['titleColor'] ) ? $attributes['titleColor'] : '#ffffff';

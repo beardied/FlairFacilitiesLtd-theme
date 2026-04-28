@@ -23,7 +23,7 @@
                     el(PanelBody, { title: 'Image', initialOpen: true },
                         el('div', { style: { marginBottom: '12px' } },
                             el(MediaUpload, {
-                                onSelect: function(media) { props.setAttributes({imageUrl: media.url, imageAlt: media.alt || ''}); },
+                                onSelect: function(media) { props.setAttributes({imageId: media.id, imageUrl: media.url, imageAlt: media.alt || ''}); },
                                 allowedTypes: ['image'],
                                 render: function(obj) {
                                     return el('div', {},
@@ -33,7 +33,7 @@
                                 }
                             })
                         ),
-                        attr.imageUrl ? el('button', { type: 'button', className: 'components-button is-link is-destructive', style: { marginBottom: '12px' }, onClick: function() { props.setAttributes({imageUrl: '', imageAlt: ''}); } }, 'Remove Image') : null,
+                        attr.imageUrl ? el('button', { type: 'button', className: 'components-button is-link is-destructive', style: { marginBottom: '12px' }, onClick: function() { props.setAttributes({imageId: 0, imageUrl: '', imageAlt: ''}); } }, 'Remove Image') : null,
                         el(TextControl, { label: 'Image Alt', value: attr.imageAlt, onChange: function(v) { props.setAttributes({imageAlt: v}); } })
                     ),
                     el(PanelBody, { title: 'Stats Overlay Background' },
