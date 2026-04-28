@@ -801,6 +801,48 @@ p.has-text-align-center,
     margin-top: 6px;
 }
 
+/* About Image Block — Stats Overlay */
+.ffl-about-stats {
+    position: absolute;
+    bottom: 24px;
+    left: 24px;
+    right: 24px;
+    border-radius: 14px;
+    padding: 24px;
+    display: flex;
+    gap: 40px;
+    backdrop-filter: blur(10px);
+}
+.ffl-about-stat { flex: 1; }
+.ffl-about-stat__num {
+    font-size: 36px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+    word-break: keep-all;
+}
+.ffl-about-stat__label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 6px;
+    word-break: keep-all;
+}
+@media (max-width: 600px) {
+    .ffl-about-stats {
+        flex-direction: column;
+        gap: 16px;
+        padding: 20px;
+        bottom: 16px;
+        left: 16px;
+        right: 16px;
+    }
+    .ffl-about-stat__num { font-size: 28px; }
+    .ffl-about-stat__label { font-size: 10px; letter-spacing: 1px; }
+}
+
 /* ========== FULL WIDTH FIXES ========== */
 .alignfull {
     width: 100vw !important;

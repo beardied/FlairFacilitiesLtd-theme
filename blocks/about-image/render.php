@@ -30,14 +30,14 @@ if ( $animate && $grad ) {
 ?>
 <div style="position:relative;border-radius:16px;overflow:hidden">
     <img src="<?php echo esc_url( $url ); ?>" alt="<?php echo esc_attr( $alt ); ?>" style="width:100%;height:500px;object-fit:cover">
-    <div class="<?php echo esc_attr( $stat_class ); ?>" style="position:absolute;bottom:24px;left:24px;right:24px;border-radius:14px;padding:24px;display:flex;gap:40px;backdrop-filter:blur(10px);<?php echo esc_attr( $stat_style ); ?>">
-        <div>
-            <div class="ffl-stat-num" style="font-size:36px"><?php echo esc_html( $s1n . $s1s ); ?></div>
-            <div class="ffl-stat-label"><?php echo esc_html( $s1l ); ?></div>
+    <div class="ffl-about-stats <?php echo esc_attr( $stat_class ); ?>" style="<?php echo esc_attr( $stat_style ); ?>">
+        <div class="ffl-about-stat">
+            <div class="ffl-about-stat__num"><?php echo esc_html( $s1n . $s1s ); ?></div>
+            <div class="ffl-about-stat__label"><?php echo esc_html( $s1l ); ?></div>
         </div>
-        <div>
-            <div class="ffl-stat-num" style="font-size:36px"><?php echo esc_html( $s2n . $s2s ); ?></div>
-            <div class="ffl-stat-label"><?php echo esc_html( $s2l ); ?></div>
+        <div class="ffl-about-stat">
+            <div class="ffl-about-stat__num"><?php echo esc_html( $s2n . $s2s ); ?></div>
+            <div class="ffl-about-stat__label"><?php echo esc_html( $s2l ); ?></div>
         </div>
     </div>
 </div>
