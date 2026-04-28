@@ -843,7 +843,7 @@ p.has-text-align-center,
         gap: 32px;
         padding: 40px 16px;
     }
-    .ffl-hero-card { order: -1; max-width: 100%; }
+    .ffl-hero-card { max-width: 100%; }
     .ffl-hero {
         min-height: auto;
         width: 100vw;
