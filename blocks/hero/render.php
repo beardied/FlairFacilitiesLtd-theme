@@ -61,7 +61,7 @@ if ( $bgImage ) {
         </div>
         <div class="ffl-hero-card ffl-fade-up ffl-fade-up-delay-2">
             <?php if ( $cTitle ) : ?>
-                <h3><?php echo esc_html( $cTitle ); ?></h3>
+                <p class="ffl-hero-card-title"><?php echo esc_html( $cTitle ); ?></p>
             <?php endif; ?>
             <?php if ( $cDesc ) : ?>
                 <p><?php echo esc_html( $cDesc ); ?></p>
