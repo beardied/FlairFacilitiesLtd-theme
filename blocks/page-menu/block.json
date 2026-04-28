@@ -8,11 +8,44 @@
     "icon": "menu",
     "description": "Displays the current page's parent and sibling pages in a styled navigation menu.",
     "attributes": {
-        "title": { "type": "string", "default": "In This Section" },
-        "bgColor": { "type": "string", "default": "#f8fafc" },
-        "bgColor2": { "type": "string", "default": "#e2e8f0" },
-        "bgGradient": { "type": "boolean", "default": false },
-        "animate": { "type": "boolean", "default": true }
+        "align": {
+            "type": "string",
+            "default": "full"
+        },
+        "title": {
+            "type": "string",
+            "default": "In This Section"
+        },
+        "bgColor": {
+            "type": "string",
+            "default": "#f8fafc"
+        },
+        "bgColor2": {
+            "type": "string",
+            "default": "#e2e8f0"
+        },
+        "bgGradient": {
+            "type": "boolean",
+            "default": false
+        },
+        "animate": {
+            "type": "boolean",
+            "default": true
+        },
+        "titleColor": {
+            "type": "string",
+            "default": "#0a1628"
+        }
+    },
+    "supports": {
+        "align": [
+            "full",
+            "wide"
+        ],
+        "spacing": {
+            "margin": true,
+            "padding": true
+        }
     },
     "render": "file:./render.php"
 }

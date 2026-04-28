@@ -1000,12 +1000,34 @@ function flairltd_reviews_recent_reviews_shortcode_handler( $atts ) {
     }
     $output .= '</div>';
     
-    $reviews_page_url = get_permalink( get_page_by_path( 'reviews' ) );
+    $reviews_page_url = get_permalink( get_page_by_path( 'testimonials' ) );
     if ($reviews_page_url) {
         $output .= '<a href="' . esc_url($reviews_page_url) . '" class="flairltd-reviews__view-all-link">View All Reviews</a>';
     }
 
     $output .= '</div>';
+    $output .= "<script>
+    (function() {
+        document.querySelectorAll('.flairltd-review-card__read-more').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var wrapper = btn.closest('.flairltd-review-card__comment-wrapper');
+                var truncated = wrapper.querySelector('.flairltd-review-card__comment--truncated');
+                var fullText = wrapper.querySelector('.flairltd-review-card__full-text');
+                if (truncated && fullText) {
+                    if (fullText.style.display === 'none') {
+                        fullText.style.display = '';
+                        truncated.style.display = 'none';
+                        btn.textContent = 'Read Less';
+                    } else {
+                        fullText.style.display = 'none';
+                        truncated.style.display = '';
+                        btn.textContent = 'Read More';
+                    }
+                }
+            });
+        });
+    })();
+    </script>";
 
     return $output;
 }
@@ -1349,3 +1371,282 @@ function flairltd_reviews_save_meta_box( $post_id ) {
     update_post_meta( $post_id, '_flairltd_associated_reviews_count', count( $unique_ids ) );
 }
 add_action( 'save_post', 'flairltd_reviews_save_meta_box' );
+
+// =============================================================================
+// SECTION 4: MANUAL REVIEW MANAGEMENT
+// =============================================================================
+
+add_action('admin_menu', function() {
+    add_submenu_page(
+        'flairltd_review_management',
+        'Manual Reviews',
+        'Manual Reviews',
+        'manage_options',
+        'flairltd_manual_reviews',
+        'flairltd_manual_reviews_page_html'
+    );
+});
+
+/**
+ * Recalculates average rating and total count from all reviews in the DB.
+ * Called after manual review changes so the summary banner stays accurate.
+ */
+function flairltd_reviews_recalculate_summary() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'flairltd_reviews';
+
+    $star_map = [ 'ONE' => 1, 'TWO' => 2, 'THREE' => 3, 'FOUR' => 4, 'FIVE' => 5 ];
+
+    $rows = $wpdb->get_results( "SELECT star_rating FROM {$table_name}" );
+    $total = count( $rows );
+    $sum   = 0;
+
+    foreach ( $rows as $row ) {
+        $sum += $star_map[ $row->star_rating ] ?? 0;
+    }
+
+    $average = $total > 0 ? round( $sum / $total, 1 ) : 0;
+
+    update_option( 'flairltd_reviews_average_rating', floatval( $average ) );
+    update_option( 'flairltd_reviews_total_count', intval( $total ) );
+}
+
+/**
+ * Handles POST/GET actions for the Manual Reviews admin page.
+ * Hooked to admin_init so redirects work before any output is sent.
+ */
+function flairltd_manual_reviews_handle_actions() {
+    if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+        return;
+    }
+
+    $page = $_REQUEST['page'] ?? '';
+    if ( $page !== 'flairltd_manual_reviews' ) {
+        return;
+    }
+
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'flairltd_reviews';
+
+    // Handle delete
+    if ( isset( $_GET['action'] ) && $_GET['action'] === 'delete' && isset( $_GET['id'] ) ) {
+        check_admin_referer( 'flairltd_delete_manual_review' );
+        $wpdb->delete( $table_name, [ 'id' => intval( $_GET['id'] ) ], [ '%d' ] );
+        flairltd_reviews_recalculate_summary();
+        wp_redirect( admin_url( 'admin.php?page=flairltd_manual_reviews&deleted=1' ) );
+        exit;
+    }
+
+    // Handle save (add or edit)
+    if ( isset( $_POST['flairltd_save_manual_review'] ) ) {
+        check_admin_referer( 'flairltd_save_manual_review_nonce' );
+
+        $id      = ! empty( $_POST['review_db_id'] ) ? intval( $_POST['review_db_id'] ) : 0;
+        $name    = sanitize_text_field( $_POST['reviewer_name'] ?? '' );
+        $photo   = esc_url_raw( $_POST['reviewer_photo'] ?? '' );
+        $rating  = sanitize_text_field( $_POST['star_rating'] ?? 'FIVE' );
+        $comment = sanitize_textarea_field( $_POST['comment'] ?? '' );
+        $date    = sanitize_text_field( $_POST['create_date'] ?? '' );
+        $reply   = sanitize_textarea_field( $_POST['reply_comment'] ?? '' );
+        $reply_date = sanitize_text_field( $_POST['reply_date'] ?? '' );
+
+        if ( empty( $name ) || empty( $comment ) || empty( $date ) ) {
+            wp_redirect( admin_url( 'admin.php?page=flairltd_manual_reviews&error=required' ) );
+            exit;
+        }
+
+        $data = [
+            'reviewer_display_name'      => $name,
+            'reviewer_profile_photo_url' => $photo,
+            'star_rating'                => $rating,
+            'comment'                    => $comment,
+            'create_time'                => gmdate( 'Y-m-d H:i:s', strtotime( $date ) ),
+            'update_time'                => gmdate( 'Y-m-d H:i:s', strtotime( $date ) ),
+            'reply_comment'              => ! empty( $reply ) ? $reply : null,
+            'reply_update_time'          => ! empty( $reply ) && ! empty( $reply_date ) ? gmdate( 'Y-m-d H:i:s', strtotime( $reply_date ) ) : null,
+        ];
+
+        if ( $id ) {
+            $wpdb->update( $table_name, $data, [ 'id' => $id ], array_fill( 0, count( $data ), '%s' ), [ '%d' ] );
+            flairltd_reviews_recalculate_summary();
+            wp_redirect( admin_url( 'admin.php?page=flairltd_manual_reviews&updated=1' ) );
+        } else {
+            $data['review_id'] = 'manual_' . time() . '_' . wp_rand( 1000, 9999 );
+            $wpdb->insert( $table_name, $data, array_fill( 0, count( $data ), '%s' ) );
+            flairltd_reviews_recalculate_summary();
+            wp_redirect( admin_url( 'admin.php?page=flairltd_manual_reviews&added=1' ) );
+        }
+        exit;
+    }
+}
+add_action( 'admin_init', 'flairltd_manual_reviews_handle_actions' );
+
+function flairltd_manual_reviews_page_html() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'flairltd_reviews';
+
+    $edit_review = null;
+    if ( isset( $_GET['action'] ) && $_GET['action'] === 'edit' && isset( $_GET['id'] ) ) {
+        $edit_review = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table_name} WHERE id = %d", intval( $_GET['id'] ) ) );
+    }
+
+    $manual_reviews = $wpdb->get_results( "SELECT * FROM {$table_name} WHERE review_id LIKE 'manual_%' ORDER BY create_time DESC" );
+    ?>
+    <div class="wrap">
+        <h1>Manual Reviews</h1>
+
+        <?php if ( isset( $_GET['added'] ) ) : ?>
+            <div class="notice notice-success is-dismissible"><p>Review added successfully.</p></div>
+        <?php elseif ( isset( $_GET['updated'] ) ) : ?>
+            <div class="notice notice-success is-dismissible"><p>Review updated successfully.</p></div>
+        <?php elseif ( isset( $_GET['deleted'] ) ) : ?>
+            <div class="notice notice-success is-dismissible"><p>Review deleted.</p></div>
+        <?php elseif ( isset( $_GET['error'] ) ) : ?>
+            <div class="notice notice-error is-dismissible"><p><?php echo esc_html( $_GET['error'] === 'required' ? 'Reviewer name, comment, and date are required.' : 'An error occurred.' ); ?></p></div>
+        <?php endif; ?>
+
+        <div class="metabox-holder">
+            <div class="postbox" style="margin-top:20px;">
+                <h2 style="padding:12px 16px;margin:0;border-bottom:1px solid #c3c4c7;font-size:14px;"><?php echo $edit_review ? 'Edit Review' : 'Add New Manual Review'; ?></h2>
+                <div class="inside" style="padding:16px;">
+                    <p style="margin-top:0;color:#646970;">
+                        Manually add reviews copied from your <a href="https://business.google.com/reviews" target="_blank">Google Business Profile Reviews page</a>.
+                        These will display alongside API-fetched reviews on the front end.
+                    </p>
+                    <form method="post">
+                        <?php wp_nonce_field( 'flairltd_save_manual_review_nonce' ); ?>
+                        <?php if ( $edit_review ) : ?>
+                            <input type="hidden" name="review_db_id" value="<?php echo intval( $edit_review->id ); ?>">
+                        <?php endif; ?>
+
+                        <table class="form-table">
+                            <tr>
+                                <th scope="row"><label for="reviewer_name">Reviewer Name *</label></th>
+                                <td>
+                                    <input type="text" name="reviewer_name" id="reviewer_name" class="regular-text" value="<?php echo $edit_review ? esc_attr( $edit_review->reviewer_display_name ) : ''; ?>" required>
+                                    <p class="description">Copy the name shown on the Google review.</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="reviewer_photo">Reviewer Photo URL</label></th>
+                                <td>
+                                    <input type="url" name="reviewer_photo" id="reviewer_photo" class="large-text" value="<?php echo $edit_review ? esc_attr( $edit_review->reviewer_profile_photo_url ) : ''; ?>">
+                                    <p class="description">
+                                        <strong>How to get this:</strong> On your Google Business Profile reviews page, right-click the reviewer's profile picture and choose <em>"Copy image address"</em> or <em>"Copy image link"</em>. The URL will look like <code>https://lh3.googleusercontent.com/...</code>. Leave blank if no photo.
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="star_rating">Star Rating *</label></th>
+                                <td>
+                                    <select name="star_rating" id="star_rating">
+                                        <?php
+                                        $ratings = ['FIVE' => '5 stars','FOUR' => '4 stars','THREE' => '3 stars','TWO' => '2 stars','ONE' => '1 star'];
+                                        foreach ( $ratings as $val => $label ) {
+                                            $selected = ( $edit_review && $edit_review->star_rating === $val ) ? ' selected' : '';
+                                            echo '<option value="' . esc_attr( $val ) . '"' . $selected . '>' . esc_html( $label ) . '</option>';
+                                        }
+                                        ?>
+                                    </select>
+                                    <p class="description">Match the star rating shown on Google.</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="comment">Review Comment *</label></th>
+                                <td>
+                                    <textarea name="comment" id="comment" class="large-text" rows="4" required><?php echo $edit_review ? esc_textarea( $edit_review->comment ) : ''; ?></textarea>
+                                    <p class="description">Copy the full review text exactly as shown on Google.</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="create_date">Review Date *</label></th>
+                                <td>
+                                    <input type="date" name="create_date" id="create_date" value="<?php echo $edit_review ? esc_attr( date( 'Y-m-d', strtotime( $edit_review->create_time ) ) ) : ''; ?>" required>
+                                    <p class="description">The date shown on the Google review.</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="reply_comment">Your Reply (optional)</label></th>
+                                <td>
+                                    <textarea name="reply_comment" id="reply_comment" class="large-text" rows="3"><?php echo $edit_review ? esc_textarea( $edit_review->reply_comment ?? '' ) : ''; ?></textarea>
+                                    <p class="description">If you have replied to this review on Google, copy your reply here.</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="reply_date">Reply Date (optional)</label></th>
+                                <td>
+                                    <input type="date" name="reply_date" id="reply_date" value="<?php echo $edit_review && $edit_review->reply_update_time ? esc_attr( date( 'Y-m-d', strtotime( $edit_review->reply_update_time ) ) ) : ''; ?>">
+                                </td>
+                            </tr>
+                        </table>
+                        <?php submit_button( $edit_review ? 'Update Review' : 'Add Review', 'primary', 'flairltd_save_manual_review' ); ?>
+                        <?php if ( $edit_review ) : ?>
+                            <a href="<?php echo admin_url( 'admin.php?page=flairltd_manual_reviews' ); ?>" class="button">Cancel</a>
+                        <?php endif; ?>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <?php if ( ! empty( $manual_reviews ) ) : ?>
+        <h2 style="margin-top:30px;">Existing Manual Reviews (<?php echo count( $manual_reviews ); ?>)</h2>
+        <table class="wp-list-table widefat fixed striped">
+            <thead>
+                <tr>
+                    <th>Reviewer</th>
+                    <th>Rating</th>
+                    <th>Comment</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ( $manual_reviews as $review ) :
+                    $star_map = ['ONE' => 1, 'TWO' => 2, 'THREE' => 3, 'FOUR' => 4, 'FIVE' => 5];
+                    $stars = $star_map[ $review->star_rating ] ?? 0;
+                    $comment_preview = wp_trim_words( $review->comment, 12 );
+                ?>
+                <tr>
+                    <td>
+                        <?php if ( $review->reviewer_profile_photo_url ) : ?>
+                            <img src="<?php echo esc_url( $review->reviewer_profile_photo_url ); ?>" width="32" height="32" style="border-radius:50%;vertical-align:middle;margin-right:8px;">
+                        <?php endif; ?>
+                        <?php echo esc_html( $review->reviewer_display_name ); ?>
+                    </td>
+                    <td><?php echo str_repeat( '★', $stars ); ?></td>
+                    <td><?php echo esc_html( $comment_preview ); ?></td>
+                    <td><?php echo esc_html( date( 'F j, Y', strtotime( $review->create_time ) ) ); ?></td>
+                    <td>
+                        <a href="<?php echo admin_url( 'admin.php?page=flairltd_manual_reviews&action=edit&id=' . intval( $review->id ) ); ?>" class="button button-small">Edit</a>
+                        <a href="<?php echo wp_nonce_url( admin_url( 'admin.php?page=flairltd_manual_reviews&action=delete&id=' . intval( $review->id ) ), 'flairltd_delete_manual_review' ); ?>" class="button button-small" onclick="return confirm('Delete this review?');">Delete</a>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php else : ?>
+            <p style="margin-top:20px;color:#646970;">No manual reviews added yet. Use the form above to add your first one.</p>
+        <?php endif; ?>
+
+        <div class="postbox" style="margin-top:30px;">
+            <h2 style="padding:12px 16px;margin:0;border-bottom:1px solid #c3c4c7;font-size:14px;">How to Copy Reviews from Google Business Profile</h2>
+            <div class="inside" style="padding:16px;">
+                <ol style="line-height:1.8;">
+                    <li>Go to <a href="https://business.google.com/reviews" target="_blank">business.google.com/reviews</a> and sign in.</li>
+                    <li>Find the review you want to copy.</li>
+                    <li><strong>Reviewer Name:</strong> Copy the name exactly as shown.</li>
+                    <li><strong>Reviewer Photo:</strong> Right-click the person's profile picture → <em>"Copy image address"</em>. The URL starts with <code>https://lh3.googleusercontent.com/</code>. Paste this into the Photo URL field.</li>
+                    <li><strong>Star Rating:</strong> Count the stars and select the matching option.</li>
+                    <li><strong>Comment:</strong> Copy the full review text word-for-word.</li>
+                    <li><strong>Date:</strong> Enter the date shown on the review (e.g. "2 weeks ago" — check the exact date by hovering over it).</li>
+                    <li><strong>Reply (optional):</strong> If you have replied to the review, copy your reply and the reply date.</li>
+                    <li>Click <strong>Add Review</strong>. It will appear on the website immediately via the <code>[flair_reviews]</code> or <code>[flair_reviews_all]</code> shortcodes.</li>
+                </ol>
+                <p style="margin-bottom:0;color:#646970;">
+                    <strong>Note:</strong> When the automated API connection starts working, it will fetch the same reviews again — but it will skip duplicates because the API reviews use Google's original IDs, while manual reviews use synthetic IDs (starting with <code>manual_</code>). There will be no conflicts.
+                </p>
+            </div>
+        </div>
+    </div>
+    <?php
+}

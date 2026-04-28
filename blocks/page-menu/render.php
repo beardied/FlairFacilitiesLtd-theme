@@ -4,6 +4,7 @@ $bg_color = ! empty( $attributes['bgColor'] ) ? $attributes['bgColor'] : '#f8faf
 $bg_color2 = ! empty( $attributes['bgColor2'] ) ? $attributes['bgColor2'] : '#e2e8f0';
 $bg_gradient = ! empty( $attributes['bgGradient'] );
 $animate = ! isset( $attributes['animate'] ) || $attributes['animate'];
+$title_color = ! empty( $attributes['titleColor'] ) ? $attributes['titleColor'] : get_theme_mod( 'flairltd_dark_color', '#0a1628' );
 
 // Only works on singular pages.
 if ( ! is_singular( 'page' ) ) {
@@ -42,18 +43,20 @@ if ( $bg_gradient ) {
     $section_style = 'background-color: ' . esc_attr( $bg_color ) . ';';
 }
 
-$wrapper_class = 'flairltd-page-menu' . ( $animate ? ' ffl-fade-up' : '' );
+$wrapper_class = 'flairltd-page-menu';
+if ( $animate && $bg_gradient ) {
+    $wrapper_class .= ' is-animated-gradient';
+}
 ?>
 <section class="<?php echo esc_attr( $wrapper_class ); ?>" style="<?php echo esc_attr( $section_style ); ?>">
     <div class="flairltd-page-menu-inner">
         <?php if ( $title ) : ?>
-            <h2 class="flairltd-page-menu-title"><?php echo esc_html( $title ); ?></h2>
+            <h2 class="flairltd-page-menu-title" style="color: <?php echo esc_attr( $title_color ); ?>"><?php echo esc_html( $title ); ?></h2>
         <?php endif; ?>
 
         <?php if ( $parent_page && $parent_id !== $current_id ) : ?>
             <div class="flairltd-page-menu-parent">
                 <a href="<?php echo esc_url( $parent_url ); ?>" class="flairltd-page-menu-parent-link">
-                    <span class="flairltd-page-menu-parent-label">← Back to</span>
                     <span class="flairltd-page-menu-parent-name"><?php echo esc_html( $parent_title ); ?></span>
                 </a>
             </div>

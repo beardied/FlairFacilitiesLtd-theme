@@ -8,17 +8,53 @@
     "icon": "editor-help",
     "description": "An FAQ section with styled Q/A badges, background colour options, and JSON-LD schema markup.",
     "attributes": {
-        "title": { "type": "string", "default": "Frequently Asked Questions" },
+        "align": {
+            "type": "string",
+            "default": "full"
+        },
+        "title": {
+            "type": "string",
+            "default": "Frequently Asked Questions"
+        },
         "items": {
             "type": "array",
             "default": [
-                { "question": "What services do you offer?", "answer": "We offer a full range of facilities management services including heating, plumbing, electrical, and air conditioning." }
+                {
+                    "question": "What services do you offer?",
+                    "answer": "We offer a full range of facilities management services including heating, plumbing, electrical, and air conditioning."
+                }
             ]
         },
-        "bgColor": { "type": "string", "default": "#ffffff" },
-        "bgColor2": { "type": "string", "default": "#f8fafc" },
-        "bgGradient": { "type": "boolean", "default": false },
-        "animate": { "type": "boolean", "default": true }
+        "bgColor": {
+            "type": "string",
+            "default": "#ffffff"
+        },
+        "bgColor2": {
+            "type": "string",
+            "default": "#f8fafc"
+        },
+        "bgGradient": {
+            "type": "boolean",
+            "default": false
+        },
+        "animate": {
+            "type": "boolean",
+            "default": true
+        },
+        "titleColor": {
+            "type": "string",
+            "default": "#0a1628"
+        }
+    },
+    "supports": {
+        "align": [
+            "full",
+            "wide"
+        ],
+        "spacing": {
+            "margin": true,
+            "padding": true
+        }
     },
     "render": "file:./render.php"
 }

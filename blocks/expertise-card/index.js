@@ -8,6 +8,7 @@
     var SelectControl = wp.components.SelectControl;
 
     var brandColors = [
+        { label: 'White (#ffffff)', value: '#ffffff' },
         { label: 'Primary Blue (#1e3a8a)', value: '#1e3a8a' },
         { label: 'Bright Blue (#2563eb)', value: '#2563eb' },
         { label: 'Accent Red (#dc2626)', value: '#dc2626' },
@@ -39,6 +40,16 @@
                     ),
                     el(PanelBody, { title: 'Card Content' },
                         el(TextControl, { label: 'Title', value: attr.title, onChange: function(v) { props.setAttributes({title: v}); } }),
+                        el('div', { style: { marginBottom: '12px' } },
+                            el('label', { style: { display: 'block', marginBottom: '4px', fontWeight: '600' } }, 'Title Colour'),
+                            el('select', {
+                                value: attr.titleColor || '#ffffff',
+                                onChange: function(e) { props.setAttributes({ titleColor: e.target.value }); },
+                                style: { width: '100%' }
+                            }, brandColors.map(function(c) {
+                                return el('option', { value: c.value, key: c.value }, c.label);
+                            }))
+                        ),
                         el(TextControl, { label: 'Description', value: attr.description, onChange: function(v) { props.setAttributes({description: v}); } }),
                         el(TextControl, { label: 'Button Text', value: attr.buttonText, onChange: function(v) { props.setAttributes({buttonText: v}); } }),
                         el(TextControl, { label: 'URL', value: attr.buttonUrl, onChange: function(v) { props.setAttributes({buttonUrl: v}); } })

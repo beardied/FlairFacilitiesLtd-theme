@@ -8,9 +8,24 @@
     "icon": "format-quote",
     "description": "A styled testimonial card.",
     "attributes": {
-        "quote": { "type": "string", "default": "Great service!" },
-        "author": { "type": "string", "default": "Client Name" },
-        "rating": { "type": "number", "default": 5 }
+        "quote": {
+            "type": "string",
+            "default": "Great service!"
+        },
+        "author": {
+            "type": "string",
+            "default": "Client Name"
+        },
+        "rating": {
+            "type": "number",
+            "default": 5
+        }
     },
-    "render": "file:./render.php"
+    "render": "file:./render.php",
+    "supports": {
+        "spacing": {
+            "margin": true,
+            "padding": true
+        }
+    }
 }

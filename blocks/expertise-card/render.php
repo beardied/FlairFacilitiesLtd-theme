@@ -4,8 +4,9 @@ $desc   = ! empty( $attributes['description'] ) ? $attributes['description'] : '
 $btn    = ! empty( $attributes['buttonText'] ) ? $attributes['buttonText'] : 'Learn More';
 $url    = ! empty( $attributes['buttonUrl'] ) ? $attributes['buttonUrl'] : '#';
 $bgImg  = ! empty( $attributes['backgroundImage'] ) ? $attributes['backgroundImage'] : '';
-$ovColor = ! empty( $attributes['overlayColor'] ) ? $attributes['overlayColor'] : '#1e3a8a';
+$ovColor = ! empty( $attributes['overlayColor'] ) ? $attributes['overlayColor'] : get_theme_mod( 'flairltd_primary_color', '#1e3a8a' );
 $ovOp   = isset( $attributes['overlayOpacity'] ) ? intval( $attributes['overlayOpacity'] ) : 90;
+$titleColor = ! empty( $attributes['titleColor'] ) ? $attributes['titleColor'] : '#ffffff';
 
 $card_style = '';
 $overlay_style = '';
@@ -23,7 +24,7 @@ if ( $bgImg ) {
         <div class="ffl-expertise-card-overlay" style="<?php echo esc_attr( $overlay_style ); ?>"></div>
     <?php endif; ?>
     <div class="ffl-expertise-card-content">
-        <h3><?php echo esc_html( $title ); ?></h3>
+        <h3 style="color: <?php echo esc_attr( $titleColor ); ?>"><?php echo esc_html( $title ); ?></h3>
         <p><?php echo esc_html( $desc ); ?></p>
         <a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $btn ); ?></a>
     </div>

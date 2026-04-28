@@ -49,10 +49,20 @@
                             }))
                         ) : null,
                         el(ToggleControl, {
-                            label: 'Animate on Scroll',
+                            label: 'Animated Gradient',
                             checked: attr.animate,
                             onChange: function(v) { props.setAttributes({ animate: v }); }
-                        })
+                        }),
+                        el('div', { style: { marginBottom: '12px', marginTop: '12px' } },
+                            el('label', { style: { display: 'block', marginBottom: '4px', fontWeight: '600' } }, 'Heading Colour'),
+                            el('select', {
+                                value: attr.titleColor || (window.flairltdCustomizerColors && window.flairltdCustomizerColors.dark) || '#0a1628',
+                                onChange: function(e) { props.setAttributes({ titleColor: e.target.value }); },
+                                style: { width: '100%' }
+                            }, brandColors.map(function(c) {
+                                return el('option', { value: c.value, key: c.value }, c.label);
+                            }))
+                        )
                     )
                 ),
                 el(TextControl, {

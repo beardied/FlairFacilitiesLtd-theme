@@ -5,6 +5,7 @@ $bg_color = ! empty( $attributes['bgColor'] ) ? $attributes['bgColor'] : '#fffff
 $bg_color2 = ! empty( $attributes['bgColor2'] ) ? $attributes['bgColor2'] : '#f8fafc';
 $bg_gradient = ! empty( $attributes['bgGradient'] );
 $animate = ! isset( $attributes['animate'] ) || $attributes['animate'];
+$title_color = ! empty( $attributes['titleColor'] ) ? $attributes['titleColor'] : get_theme_mod( 'flairltd_dark_color', '#0a1628' );
 
 $items = array_filter( $items, function( $item ) {
     return ! empty( $item['question'] ) && ! empty( $item['answer'] );
@@ -38,12 +39,15 @@ if ( $bg_gradient ) {
     $section_style = 'background-color: ' . esc_attr( $bg_color ) . ';';
 }
 
-$wrapper_class = 'flairltd-faq-section' . ( $animate ? ' ffl-fade-up' : '' );
+$wrapper_class = 'flairltd-faq-section';
+if ( $animate && $bg_gradient ) {
+    $wrapper_class .= ' is-animated-gradient';
+}
 ?>
 <section class="<?php echo esc_attr( $wrapper_class ); ?>" style="<?php echo esc_attr( $section_style ); ?>">
     <div class="flairltd-faq-inner">
         <?php if ( $title ) : ?>
-            <h2 class="flairltd-faq-title"><?php echo esc_html( $title ); ?></h2>
+            <h2 class="flairltd-faq-title" style="color: <?php echo esc_attr( $title_color ); ?>"><?php echo esc_html( $title ); ?></h2>
         <?php endif; ?>
 
         <div class="flairltd-faq-list">

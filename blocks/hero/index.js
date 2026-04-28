@@ -9,7 +9,7 @@
     wp.blocks.registerBlockType('flairltd/hero', {
         edit: function(props) {
             var attr = props.attributes;
-            return el('div', { style: { border: '1px dashed #666', padding: '10px', background: '#0a1628', color: '#fff' } },
+            return el('div', { style: { border: '1px dashed #666', padding: '10px', background: (window.flairltdCustomizerColors && window.flairltdCustomizerColors.dark) || '#0a1628', color: '#fff' } },
                 el(InspectorControls, {},
                     el(PanelBody, { title: 'Background', initialOpen: true },
                         el('div', { style: { marginBottom: '12px' } },

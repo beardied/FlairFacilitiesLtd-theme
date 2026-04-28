@@ -16,9 +16,9 @@ if ( empty( $items ) ) {
         <div class="ffl-check">
             <div class="ffl-check-icon">&#10003;</div>
             <div>
-                <strong style="color:#0a1628;font-size:15px"><?php echo esc_html( $item['title'] ); ?></strong>
+                <strong style="color:var(--ffl-dark);font-size:15px"><?php echo esc_html( $item['title'] ); ?></strong>
                 <?php if ( ! empty( $item['description'] ) ) : ?>
-                    <p style="color:#64748b;font-size:14px;margin:2px 0 0;line-height:1.6"><?php echo esc_html( $item['description'] ); ?></p>
+                    <p style="color:var(--ffl-muted);font-size:14px;margin:2px 0 0;line-height:1.6"><?php echo esc_html( $item['description'] ); ?></p>
                 <?php endif; ?>
             </div>
         </div>

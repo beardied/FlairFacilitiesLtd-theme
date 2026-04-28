@@ -15,7 +15,7 @@ $cBtn1Url   = ! empty( $attributes['cardBtn1Url'] ) ? $attributes['cardBtn1Url']
 $cBtn2Text  = ! empty( $attributes['cardBtn2Text'] ) ? $attributes['cardBtn2Text'] : '';
 $cBtn2Url   = ! empty( $attributes['cardBtn2Url'] ) ? $attributes['cardBtn2Url'] : '#';
 $bgImage    = ! empty( $attributes['backgroundImage'] ) ? $attributes['backgroundImage'] : '';
-$ovColor    = ! empty( $attributes['overlayColor'] ) ? $attributes['overlayColor'] : '#0a1628';
+$ovColor    = ! empty( $attributes['overlayColor'] ) ? $attributes['overlayColor'] : get_theme_mod( 'flairltd_dark_color', '#0a1628' );
 $ovOpacity  = isset( $attributes['overlayOpacity'] ) ? intval( $attributes['overlayOpacity'] ) : 85;
 
 $badges = array_filter( [ $badge1, $badge2, $badge3 ] );
