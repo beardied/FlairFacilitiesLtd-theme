@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'FLAIR_LTD_VERSION', '3.12.4' );
+define( 'FLAIR_LTD_VERSION', '3.12.5' );
 define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
@@ -1071,12 +1071,52 @@ function flairltd_llms_txt_output() {
     $site_url  = home_url( '/' );
     $email     = get_theme_mod( 'flairltd_email', 'info@flairfacilities.co.uk' );
 
+    // Fetch all published pages with full objects so we have parent info.
+    $all_pages = get_posts( [
+        'post_type'      => 'page',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'orderby'        => 'title',
+        'order'          => 'ASC',
+    ] );
+
+    // Determine the most recent modification date across all pages.
+    $last_modified = '';
+    foreach ( $all_pages as $p ) {
+        $mod = get_the_modified_date( 'Y-m-d H:i:s', $p->ID );
+        if ( $mod && ( ! $last_modified || $mod > $last_modified ) ) {
+            $last_modified = $mod;
+        }
+    }
+    if ( ! $last_modified ) {
+        $last_modified = gmdate( 'Y-m-d H:i:s' );
+    }
+
+    // Build hierarchy.
+    $top_level = [];
+    $children  = [];
+    foreach ( $all_pages as $p ) {
+        if ( $p->post_parent == 0 ) {
+            $top_level[] = $p;
+        } else {
+            $children[ $p->post_parent ][] = $p;
+        }
+    }
+
+    // Sort children alphabetically by title.
+    foreach ( $children as $parent_id => &$child_list ) {
+        usort( $child_list, function( $a, $b ) {
+            return strcasecmp( $a->post_title, $b->post_title );
+        } );
+    }
+    unset( $child_list );
+
     echo "# {$site_name}\n";
     echo "# llms.txt — AI training & crawling policy\n";
-    echo "# Generated: " . gmdate( 'Y-m-d H:i:s T' ) . "\n";
+    echo "# Content current as of: {$last_modified} GMT\n";
     echo "\n";
 
-    // Policy section
+    // Policy section.
     echo "# Policy\n";
     echo "Allow: {$site_url}\n";
     echo "Disallow: /wp-admin/\n";
@@ -1084,20 +1124,25 @@ function flairltd_llms_txt_output() {
     echo "Disallow: /feed/\n";
     echo "\n";
 
-    // Key pages
+    // Key pages — homepage first, then parent pages alphabetically
+    // with their child pages immediately after.
     echo "# Key pages\n";
-    $pages = get_posts( [
-        'post_type'      => 'page',
-        'post_status'    => 'publish',
-        'posts_per_page' => -1,
-        'orderby'        => 'menu_order',
-        'order'          => 'ASC',
-        'fields'         => 'ids',
-    ] );
-    foreach ( $pages as $page_id ) {
-        $url = get_permalink( $page_id );
-        if ( $url ) {
-            echo "- {$url}\n";
+    echo "- {$site_url}\n";
+
+    foreach ( $top_level as $page ) {
+        $page_url = get_permalink( $page->ID );
+        if ( ! $page_url || trailingslashit( $page_url ) === trailingslashit( $site_url ) ) {
+            continue; // Skip homepage duplicate.
+        }
+        echo "- {$page_url}\n";
+
+        if ( ! empty( $children[ $page->ID ] ) ) {
+            foreach ( $children[ $page->ID ] as $child ) {
+                $child_url = get_permalink( $child->ID );
+                if ( $child_url ) {
+                    echo "- {$child_url}\n";
+                }
+            }
         }
     }
 
