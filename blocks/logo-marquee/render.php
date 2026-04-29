@@ -47,5 +47,11 @@ if ( empty( $logo_html ) ) {
         <div class="ffl-logo-marquee-group" aria-hidden="true">
             <?php echo $logo_html; ?>
         </div>
+        <div class="ffl-logo-marquee-group" aria-hidden="true">
+            <?php echo $logo_html; ?>
+        </div>
+        <div class="ffl-logo-marquee-group" aria-hidden="true">
+            <?php echo $logo_html; ?>
+        </div>
     </div>
 </section>

@@ -1622,14 +1622,6 @@ body.has-page-title-bar .wp-block-post-content {
     width: auto;
     height: auto;
     object-fit: contain;
-    filter: grayscale(100%);
-    opacity: 0.7;
-    transition: filter 0.3s ease, opacity 0.3s ease;
-}
-
-.ffl-logo-marquee-item img:hover {
-    filter: grayscale(0%);
-    opacity: 1;
 }
 
 @keyframes fflMarqueeScroll {
