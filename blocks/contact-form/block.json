@@ -1,0 +1,34 @@
+{
+    "$schema": "https://schemas.wp.org/wp/6.5/block.json",
+    "apiVersion": 3,
+    "name": "flairltd/contact-form",
+    "version": "1.0.0",
+    "title": "Contact Form",
+    "category": "flairltd",
+    "icon": "email-alt",
+    "description": "A secure contact form with CAPTCHA, image upload, and styled email notifications.",
+    "attributes": {
+        "recipientEmail": {
+            "type": "string",
+            "default": ""
+        },
+        "align": {
+            "type": "string",
+            "default": "wide"
+        },
+        "hasBorder": {
+            "type": "boolean",
+            "default": true
+        }
+    },
+    "supports": {
+        "anchor": true,
+        "align": ["wide", "full"],
+        "spacing": {
+            "margin": true,
+            "padding": true
+        }
+    },
+    "render": "file:./render.php",
+    "viewScript": "file:./view.js"
+}

@@ -234,6 +234,12 @@ function flairltd_email_shortcode() {
 }
 add_shortcode( 'flair_email', 'flairltd_email_shortcode' );
 
+function flairltd_address_shortcode() {
+    $address = get_theme_mod( 'flairltd_address', "24 Kemp House, 152 City Road\nLondon, EC1V 2NX" );
+    return '<div class="ffl-address-shortcode"><address>' . wp_kses_post( nl2br( $address ) ) . '</address></div>';
+}
+add_shortcode( 'flair_address', 'flairltd_address_shortcode' );
+
 function flairltd_footer_desc_shortcode() {
     $desc = get_theme_mod( 'flairltd_footer_desc', 'Leading commercial mechanical and heating contractor providing services for companies and communal dwellings in London and surrounding areas.' );
     return wp_kses_post( wpautop( $desc ) );

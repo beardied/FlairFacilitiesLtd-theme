@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'FLAIR_LTD_VERSION', '3.9.2' );
+define( 'FLAIR_LTD_VERSION', '3.12.0' );
 define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
@@ -36,8 +36,7 @@ function flairltd_setup() {
 add_action( 'after_setup_theme', 'flairltd_setup' );
 
 function flairltd_enqueue() {
-    wp_enqueue_style( 'flairltd-fonts', FLAIR_LTD_URI . '/assets/fonts/inter/inter-font.css', [], FLAIR_LTD_VERSION );
-    wp_enqueue_style( 'flairltd-style', FLAIR_LTD_URI . '/assets/css/style.css', [ 'flairltd-fonts' ], FLAIR_LTD_VERSION );
+    wp_enqueue_style( 'flairltd-style', FLAIR_LTD_URI . '/assets/css/style.css', [], FLAIR_LTD_VERSION );
     wp_enqueue_script( 'flairltd-animations', FLAIR_LTD_URI . '/assets/js/animations.js', [], FLAIR_LTD_VERSION, true );
 }
 add_action( 'wp_enqueue_scripts', 'flairltd_enqueue' );
@@ -73,18 +72,54 @@ function flairltd_sidebar_widgets_shortcode() {
 }
 add_shortcode( 'flair_sidebar_widgets', 'flairltd_sidebar_widgets_shortcode' );
 
-function flairltd_block_assets() {
+function flairltd_block_editor_styles() {
     wp_enqueue_style( 'flairltd-blocks', FLAIR_LTD_URI . '/assets/css/blocks.css', [], FLAIR_LTD_VERSION );
 }
-add_action( 'enqueue_block_assets', 'flairltd_block_assets' );
+add_action( 'enqueue_block_editor_assets', 'flairltd_block_editor_styles' );
 
 function flairltd_block_categories( $cats ) {
     return array_merge( $cats, [ [ 'slug' => 'flairltd', 'title' => __( 'Flair Facilities', 'flairfacilitiesltd' ), 'icon' => 'building' ] ] );
 }
 add_filter( 'block_categories_all', 'flairltd_block_categories', 10, 1 );
 
+/**
+ * Preload critical font files + preconnect to third-party origins.
+ */
+function flairltd_resource_hints() {
+    $font_base = FLAIR_LTD_URI . '/assets/fonts/inter/';
+    echo '<link rel="preload" as="font" href="' . esc_url( $font_base . 'inter-latin.woff2' ) . '" type="font/woff2" crossorigin="anonymous">' . "\n";
+    echo '<link rel="preconnect" href="https://static.cloudflareinsights.com">' . "\n";
+}
+add_action( 'wp_head', 'flairltd_resource_hints', 1 );
+
+/**
+ * Add fetchpriority="high" to the main stylesheet.
+ */
+function flairltd_style_fetchpriority( $html, $handle ) {
+    if ( 'flairltd-style' === $handle && false === strpos( $html, 'fetchpriority' ) ) {
+        $html = str_replace( "media='all'", "media='all' fetchpriority='high'", $html );
+    }
+    return $html;
+}
+add_filter( 'style_loader_tag', 'flairltd_style_fetchpriority', 10, 2 );
+
+/**
+ * Disable WordPress emoji script — saves an inline script + external JS request.
+ */
+function flairltd_disable_emojis() {
+    remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+    remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+    remove_action( 'wp_print_styles', 'print_emoji_styles' );
+    remove_action( 'admin_print_styles', 'print_emoji_styles' );
+    remove_filter( 'the_content_feed', 'wp_staticize_emoji' );
+    remove_filter( 'comment_text_rss', 'wp_staticize_emoji' );
+    remove_filter( 'wp_mail', 'wp_staticize_emoji_for_email' );
+    add_filter( 'emoji_svg_url', '__return_false' );
+}
+add_action( 'init', 'flairltd_disable_emojis' );
+
 function flairltd_register_blocks() {
-    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list', 'faq-section', 'page-menu' ];
+    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list', 'faq-section', 'page-menu', 'contact-form', 'logo-marquee' ];
     foreach ( $blocks as $b ) {
         register_block_type( FLAIR_LTD_DIR . 'blocks/' . $b );
     }
@@ -95,7 +130,7 @@ add_action( 'init', 'flairltd_register_blocks' );
  * Force full-width alignment on section blocks so their backgrounds always span the viewport.
  */
 function flairltd_force_fullwidth_blocks( $block_content, $block ) {
-    $fullwidth_blocks = [ 'flairltd/faq-section', 'flairltd/page-menu' ];
+    $fullwidth_blocks = [ 'flairltd/faq-section', 'flairltd/page-menu', 'flairltd/logo-marquee' ];
     if ( in_array( $block['blockName'], $fullwidth_blocks, true ) ) {
         if ( strpos( $block_content, 'alignfull' ) === false ) {
             $block_content = preg_replace(
@@ -125,6 +160,39 @@ function flairltd_cover_eager_loading( $block_content, $block ) {
     return $block_content;
 }
 add_filter( 'render_block', 'flairltd_cover_eager_loading', 10, 2 );
+
+/**
+ * Wrap page H1 titles in a full-width gradient bar on standard pages.
+ * Skipped for child-hero template and pages containing a hero block.
+ */
+function flairltd_page_title_gradient_bar( $block_content, $block ) {
+    if ( $block['blockName'] !== 'core/post-title' ) {
+        return $block_content;
+    }
+
+    if ( ! is_page() || is_front_page() ) {
+        return $block_content;
+    }
+
+    $template = get_page_template_slug();
+    if ( $template === 'child-hero' ) {
+        return $block_content;
+    }
+
+    $page = get_post();
+    if ( $page && ( has_block( 'flairltd/hero', $page ) || has_block( 'core/cover', $page ) ) ) {
+        return $block_content;
+    }
+
+    // Only wrap H1 titles
+    $level = $block['attrs']['level'] ?? 1;
+    if ( $level !== 1 ) {
+        return $block_content;
+    }
+
+    return '<div class="ffl-page-title-bar alignfull"><div class="ffl-page-title-inner">' . $block_content . '</div></div>';
+}
+add_filter( 'render_block', 'flairltd_page_title_gradient_bar', 10, 2 );
 
 /**
  * Restore real image src after EWWW replaces it with a placeholder on LCP images.
@@ -187,7 +255,7 @@ function flairltd_preload_child_hero_image() {
 add_action( 'wp_head', 'flairltd_preload_child_hero_image', 1 );
 
 function flairltd_block_editor_assets() {
-    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list', 'faq-section', 'page-menu' ];
+    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list', 'faq-section', 'page-menu', 'contact-form' ];
     $deps = [ 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-i18n' ];
 
     foreach ( $blocks as $b ) {
@@ -208,6 +276,7 @@ function flairltd_block_editor_assets() {
         'accent'  => get_theme_mod( 'flairltd_accent_color', '#dc2626' ),
         'orange'  => get_theme_mod( 'flairltd_orange_color', '#ea580c' ),
         'dark'    => get_theme_mod( 'flairltd_dark_color', '#0a1628' ),
+        'email'   => get_theme_mod( 'flairltd_email', 'info@flairfacilities.co.uk' ),
     ] );
 }
 add_action( 'enqueue_block_editor_assets', 'flairltd_block_editor_assets' );
@@ -463,6 +532,17 @@ require_once FLAIR_LTD_DIR . 'inc/google-reviews.php';
 
 function flairltd_body_class( $classes ) {
     if ( is_front_page() ) $classes[] = 'is-front-page';
+
+    // Add gradient title bar class on standard pages (not child-hero, no hero/cover block)
+    if ( is_page() && ! is_front_page() ) {
+        $template = get_page_template_slug();
+        if ( $template !== 'child-hero' ) {
+            $page = get_post();
+            if ( $page && ! has_block( 'flairltd/hero', $page ) && ! has_block( 'core/cover', $page ) ) {
+                $classes[] = 'has-page-title-bar';
+            }
+        }
+    }
     return $classes;
 }
 add_filter( 'body_class', 'flairltd_body_class' );
@@ -559,3 +639,548 @@ function flairltd_last_block_body_class( $classes ) {
     return $classes;
 }
 add_filter( 'body_class', 'flairltd_last_block_body_class' );
+
+
+/**
+ * Contact Form — AJAX submission handler
+ */
+function flairltd_contact_form_submit() {
+    // Verify nonce
+    if ( ! wp_verify_nonce( $_POST['flairltd_contact_nonce'] ?? '', 'flairltd_contact_submit' ) ) {
+        wp_send_json_error( [ 'message' => 'Security check failed. Please refresh the page and try again.' ] );
+    }
+
+    // Honeypot check
+    if ( ! empty( $_POST['website'] ) ) {
+        wp_send_json_error( [ 'message' => 'Spam detected.' ] );
+    }
+
+    // Rate limiting
+    $ip    = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    $key   = 'flairltd_contact_rate_' . md5( $ip );
+    $count = get_transient( $key );
+    if ( $count && $count >= 5 ) {
+        wp_send_json_error( [ 'message' => 'Too many submissions. Please try again in 5 minutes.' ] );
+    }
+
+    // Field validation
+    $name      = sanitize_text_field( $_POST['name'] ?? '' );
+    $email     = sanitize_email( $_POST['email'] ?? '' );
+    $phone     = sanitize_text_field( $_POST['phone'] ?? '' );
+    $subject   = sanitize_text_field( $_POST['subject'] ?? '' );
+    $message   = sanitize_textarea_field( $_POST['message'] ?? '' );
+    $recipient = sanitize_email( $_POST['recipient_email'] ?? get_theme_mod( 'flairltd_email', 'info@flairfacilities.co.uk' ) );
+
+    if ( empty( $name ) || empty( $email ) || empty( $message ) ) {
+        wp_send_json_error( [ 'message' => 'Please fill in all required fields.' ] );
+    }
+
+    if ( ! is_email( $email ) ) {
+        wp_send_json_error( [ 'message' => 'Please enter a valid email address.' ] );
+    }
+
+    // File upload handling
+    $attachments   = [];
+    $max_size      = 5 * 1024 * 1024; // 5MB
+    $allowed_exts  = [ 'jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx' ];
+
+    if ( ! empty( $_FILES['images'] ) && is_array( $_FILES['images']['name'] ) ) {
+        $file_count = count( $_FILES['images']['name'] );
+        if ( $file_count > 10 ) {
+            wp_send_json_error( [ 'message' => 'Maximum 10 images allowed.' ] );
+        }
+
+        for ( $i = 0; $i < $file_count; $i++ ) {
+            if ( $_FILES['images']['error'][ $i ] !== UPLOAD_ERR_OK ) {
+                continue;
+            }
+
+            $tmp_name = $_FILES['images']['tmp_name'][ $i ];
+            $filename = $_FILES['images']['name'][ $i ];
+            $filesize = $_FILES['images']['size'][ $i ];
+
+            if ( $filesize > $max_size ) {
+                wp_send_json_error( [ 'message' => 'One or more images exceed the 5MB limit.' ] );
+            }
+
+            // Validate extension (primary check — wp_check_filetype_and_ext can be too strict on temp files)
+            $file_info = wp_check_filetype( $filename, [
+                'jpg|jpeg' => 'image/jpeg',
+                'png'      => 'image/png',
+                'gif'      => 'image/gif',
+                'webp'     => 'image/webp',
+                'pdf'      => 'application/pdf',
+                'doc'      => 'application/msword',
+                'docx'     => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            ] );
+            if ( empty( $file_info['ext'] ) || ! in_array( strtolower( $file_info['ext'] ), $allowed_exts, true ) ) {
+                wp_send_json_error( [ 'message' => 'Invalid file type. Only images (JPG, PNG, GIF, WebP) and documents (PDF, DOC, DOCX) are allowed.' ] );
+            }
+
+            // Secondary MIME check (lenient — accept application/octet-stream which temp files sometimes report)
+            $mime_type = '';
+            if ( function_exists( 'mime_content_type' ) ) {
+                $mime_type = mime_content_type( $tmp_name );
+            } elseif ( function_exists( 'finfo_file' ) ) {
+                $finfo = finfo_open( FILEINFO_MIME_TYPE );
+                $mime_type = finfo_file( $finfo, $tmp_name );
+                finfo_close( $finfo );
+            }
+            $valid_mimes = [
+                'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+                'application/pdf', 'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/octet-stream', 'application/zip', // DOCX is technically a zip
+            ];
+            if ( $mime_type && ! in_array( $mime_type, $valid_mimes, true ) ) {
+                wp_send_json_error( [ 'message' => 'Invalid file type. Only images (JPG, PNG, GIF, WebP) and documents (PDF, DOC, DOCX) are allowed.' ] );
+            }
+
+            $temp_dir  = get_temp_dir();
+            $temp_file = $temp_dir . wp_unique_filename( $temp_dir, sanitize_file_name( $filename ) );
+
+            if ( move_uploaded_file( $tmp_name, $temp_file ) ) {
+                $attachments[] = $temp_file;
+            }
+        }
+    }
+
+    // Email headers
+    $from_email = get_theme_mod( 'flairltd_email', 'info@flairfacilities.co.uk' );
+    $from_name  = get_bloginfo( 'name' );
+    $headers    = [
+        'Content-Type: text/html; charset=UTF-8',
+        'From: ' . $from_name . ' <' . $from_email . '>',
+        'Reply-To: ' . $name . ' <' . $email . '>',
+    ];
+
+    // Staff email
+    $staff_subject = 'New Contact Form Submission' . ( $subject ? ': ' . $subject : '' );
+    $staff_body    = flairltd_contact_email_template_staff( $name, $email, $phone, $subject, $message );
+    $staff_sent    = wp_mail( $recipient, $staff_subject, $staff_body, $headers, $attachments );
+
+    // Customer confirmation email
+    $customer_subject = 'Thank you for contacting ' . $from_name;
+    $customer_body    = flairltd_contact_email_template_customer( $name, $subject, $message );
+    $customer_headers = [
+        'Content-Type: text/html; charset=UTF-8',
+        'From: ' . $from_name . ' <' . $from_email . '>',
+    ];
+    wp_mail( $email, $customer_subject, $customer_body, $customer_headers );
+
+    // Clean up temp files
+    foreach ( $attachments as $file ) {
+        if ( file_exists( $file ) ) {
+            @unlink( $file );
+        }
+    }
+
+    // Increment rate limit counter
+    set_transient( $key, ( $count ?: 0 ) + 1, 300 ); // 5 minutes
+
+    if ( $staff_sent ) {
+        wp_send_json_success( [ 'message' => 'Thank you! Your message has been sent and we will be in touch shortly.' ] );
+    } else {
+        wp_send_json_error( [ 'message' => 'Failed to send email. Please try again or contact us directly.' ] );
+    }
+}
+add_action( 'wp_ajax_flairltd_contact_submit', 'flairltd_contact_form_submit' );
+add_action( 'wp_ajax_nopriv_flairltd_contact_submit', 'flairltd_contact_form_submit' );
+
+/**
+ * Get the Customizer logo as HTML for email templates.
+ */
+function flairltd_email_logo_html() {
+    $logo_id = get_theme_mod( 'custom_logo' );
+    if ( ! $logo_id ) {
+        return '';
+    }
+
+    $logo_url = wp_get_attachment_image_url( $logo_id, 'medium' );
+    if ( ! $logo_url ) {
+        return '';
+    }
+
+    $alt = esc_attr( get_bloginfo( 'name' ) );
+    return '<div class="logo-bar"><img src="' . esc_url( $logo_url ) . '" alt="' . $alt . '" width="180"></div>';
+}
+
+/**
+ * Staff email template.
+ */
+function flairltd_contact_email_template_staff( $name, $email, $phone, $subject, $message ) {
+    $site_name = esc_html( get_bloginfo( 'name' ) );
+    $date      = esc_html( wp_date( 'j F Y, g:i a' ) );
+    $name_e    = esc_html( $name );
+    $email_e   = esc_html( $email );
+    $phone_e   = esc_html( $phone );
+    $subject_e = esc_html( $subject );
+    $message_e = nl2br( esc_html( $message ) );
+
+    $logo_html = flairltd_email_logo_html();
+
+    return <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{font-family:Inter,system-ui,sans-serif;background:#f1f5f9;margin:0;padding:20px;color:#0f172a}
+.container{max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1)}
+.logo-bar{padding:24px 24px 0;text-align:center;background:#fff}
+.logo-bar img{max-width:180px;height:auto}
+.header{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);padding:24px;text-align:center}
+.header h1{color:#fff;margin:0;font-size:22px;font-weight:700}
+.content{padding:32px 24px}
+.field{margin-bottom:20px}
+.field-label{font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;margin-bottom:6px;font-weight:600}
+.field-value{font-size:15px;color:#0f172a;line-height:1.6}
+.message-box{background:#f8fafc;border-left:4px solid #2563eb;padding:16px;border-radius:0 8px 8px 0;margin-top:8px}
+.footer{padding:20px 24px;background:#f8fafc;text-align:center;font-size:13px;color:#64748b;border-top:1px solid #e2e8f0}
+</style>
+</head>
+<body>
+<div class="container">
+    {$logo_html}
+    <div class="header">
+        <h1>New Contact Form Submission</h1>
+    </div>
+    <div class="content">
+        <div class="field">
+            <div class="field-label">Submitted</div>
+            <div class="field-value">{$date}</div>
+        </div>
+        <div class="field">
+            <div class="field-label">Name</div>
+            <div class="field-value">{$name_e}</div>
+        </div>
+        <div class="field">
+            <div class="field-label">Email</div>
+            <div class="field-value"><a href="mailto:{$email_e}">{$email_e}</a></div>
+        </div>
+        <div class="field">
+            <div class="field-label">Phone</div>
+            <div class="field-value">{$phone_e}</div>
+        </div>
+        <div class="field">
+            <div class="field-label">Subject</div>
+            <div class="field-value">{$subject_e}</div>
+        </div>
+        <div class="field">
+            <div class="field-label">Message</div>
+            <div class="message-box">{$message_e}</div>
+        </div>
+    </div>
+    <div class="footer">
+        Sent from {$site_name} contact form
+    </div>
+</div>
+</body>
+</html>
+HTML;
+}
+
+/**
+ * Customer confirmation email template.
+ */
+function flairltd_contact_email_template_customer( $name, $subject, $message ) {
+    $site_name = esc_html( get_bloginfo( 'name' ) );
+    $name_e    = esc_html( $name );
+    $subject_e = esc_html( $subject );
+    $message_e = nl2br( esc_html( $message ) );
+
+    $logo_html = flairltd_email_logo_html();
+
+    return <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{font-family:Inter,system-ui,sans-serif;background:#f1f5f9;margin:0;padding:20px;color:#0f172a}
+.container{max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1)}
+.logo-bar{padding:24px 24px 0;text-align:center;background:#fff}
+.logo-bar img{max-width:180px;height:auto}
+.header{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);padding:24px;text-align:center}
+.header h1{color:#fff;margin:0;font-size:22px;font-weight:700}
+.content{padding:32px 24px}
+.intro{font-size:16px;line-height:1.7;margin-bottom:24px;color:#334155}
+.field{margin-bottom:20px}
+.field-label{font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:#64748b;margin-bottom:6px;font-weight:600}
+.field-value{font-size:15px;color:#0f172a;line-height:1.6}
+.message-box{background:#f8fafc;border-left:4px solid #2563eb;padding:16px;border-radius:0 8px 8px 0;margin-top:8px}
+.cta{text-align:center;margin-top:28px}
+.cta a{display:inline-block;padding:14px 28px;background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px}
+.footer{padding:20px 24px;background:#f8fafc;text-align:center;font-size:13px;color:#64748b;border-top:1px solid #e2e8f0}
+</style>
+</head>
+<body>
+<div class="container">
+    {$logo_html}
+    <div class="header">
+        <h1>Thank You for Contacting Us</h1>
+    </div>
+    <div class="content">
+        <p class="intro">Hi {$name_e},</p>
+        <p class="intro">Thank you for reaching out to {$site_name}. We have received your message and a member of our team will get back to you as soon as possible.</p>
+        <div class="field">
+            <div class="field-label">Your Subject</div>
+            <div class="field-value">{$subject_e}</div>
+        </div>
+        <div class="field">
+            <div class="field-label">Your Message</div>
+            <div class="message-box">{$message_e}</div>
+        </div>
+        <div class="cta">
+            <a href="https://dev.flairfacilities.co.uk">Visit Our Website</a>
+        </div>
+    </div>
+    <div class="footer">
+        This is an automated confirmation. Please do not reply to this email.<br>
+        &copy; {$site_name}
+    </div>
+</div>
+</body>
+</html>
+HTML;
+}
+
+
+/**
+ * Custom XML Sitemap — plain XML for search engines only
+ * Outputs at /sitemap.xml
+ */
+
+// Disable the broken built-in WordPress sitemap
+add_filter( 'wp_sitemaps_enabled', '__return_false' );
+
+// Add rewrite rules
+function flairltd_seo_rewrite_rules() {
+    add_rewrite_rule( '^sitemap\.xml$', 'index.php?flairltd_sitemap=1', 'top' );
+    add_rewrite_rule( '^robots\.txt$', 'index.php?flairltd_robots=1', 'top' );
+    add_rewrite_rule( '^llms\.txt$', 'index.php?flairltd_llms=1', 'top' );
+}
+add_action( 'init', 'flairltd_seo_rewrite_rules', 5 );
+
+// Register query vars
+function flairltd_seo_query_vars( $vars ) {
+    $vars[] = 'flairltd_sitemap';
+    $vars[] = 'flairltd_robots';
+    $vars[] = 'flairltd_llms';
+    return $vars;
+}
+add_filter( 'query_vars', 'flairltd_seo_query_vars' );
+
+// Flush rewrite rules on theme switch
+function flairltd_seo_flush_rules() {
+    flairltd_seo_rewrite_rules();
+    flush_rewrite_rules();
+}
+add_action( 'after_switch_theme', 'flairltd_seo_flush_rules' );
+
+// ── Plain XML Sitemap ────────────────────────────────────────────
+function flairltd_sitemap_output() {
+    if ( ! get_query_var( 'flairltd_sitemap' ) ) {
+        return;
+    }
+
+    while ( ob_get_level() ) {
+        ob_end_clean();
+    }
+
+    header( 'Content-Type: application/xml; charset=UTF-8' );
+    header( 'X-Robots-Tag: noindex, follow', true );
+
+    $urls = flairltd_get_sitemap_urls();
+
+    echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+    echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+
+    foreach ( $urls as $url ) {
+        echo "  <url>\n";
+        echo "    <loc>" . esc_url( $url['loc'] ) . "</loc>\n";
+        if ( ! empty( $url['lastmod'] ) ) {
+            echo "    <lastmod>" . esc_html( $url['lastmod'] ) . "</lastmod>\n";
+        }
+        if ( ! empty( $url['changefreq'] ) ) {
+            echo "    <changefreq>" . esc_html( $url['changefreq'] ) . "</changefreq>\n";
+        }
+        if ( ! empty( $url['priority'] ) ) {
+            echo "    <priority>" . esc_html( $url['priority'] ) . "</priority>\n";
+        }
+        echo "  </url>\n";
+    }
+
+    echo '</urlset>';
+    exit;
+}
+add_action( 'template_redirect', 'flairltd_sitemap_output', 1 );
+
+// ── robots.txt ───────────────────────────────────────────────────
+function flairltd_robots_txt_output() {
+    if ( ! get_query_var( 'flairltd_robots' ) ) {
+        return;
+    }
+
+    while ( ob_get_level() ) {
+        ob_end_clean();
+    }
+
+    header( 'Content-Type: text/plain; charset=UTF-8' );
+
+    $sitemap_url = home_url( '/sitemap.xml' );
+    $host        = wp_parse_url( home_url(), PHP_URL_HOST );
+
+    echo "User-agent: *\n";
+    echo "Disallow: /wp-admin/\n";
+    echo "Disallow: /wp-includes/\n";
+    echo "Disallow: /wp-content/plugins/\n";
+    echo "Disallow: /wp-login.php\n";
+    echo "Disallow: /wp-register.php\n";
+    echo "Disallow: /feed/\n";
+    echo "Disallow: /comments/feed/\n";
+    echo "Disallow: /trackback/\n";
+    echo "Disallow: /author/\n";
+    echo "Disallow: /cdn-cgi/\n";
+    echo "Disallow: /*?*\n";
+    echo "Allow: /wp-admin/admin-ajax.php\n";
+    echo "Allow: /wp-content/uploads/\n";
+    echo "Allow: /wp-content/themes/\n";
+    echo "\n";
+    echo "Host: {$host}\n";
+    echo "Sitemap: {$sitemap_url}\n";
+    exit;
+}
+add_action( 'template_redirect', 'flairltd_robots_txt_output', 1 );
+
+// ── llms.txt ─────────────────────────────────────────────────────
+function flairltd_llms_txt_output() {
+    if ( ! get_query_var( 'flairltd_llms' ) ) {
+        return;
+    }
+
+    while ( ob_get_level() ) {
+        ob_end_clean();
+    }
+
+    header( 'Content-Type: text/plain; charset=UTF-8' );
+
+    $site_name = get_bloginfo( 'name' );
+    $site_url  = home_url( '/' );
+    $email     = get_theme_mod( 'flairltd_email', 'info@flairfacilities.co.uk' );
+
+    echo "# {$site_name}\n";
+    echo "# llms.txt — AI training & crawling policy\n";
+    echo "# Generated: " . gmdate( 'Y-m-d H:i:s T' ) . "\n";
+    echo "\n";
+
+    // Policy section
+    echo "# Policy\n";
+    echo "Allow: {$site_url}\n";
+    echo "Disallow: /wp-admin/\n";
+    echo "Disallow: /wp-login.php\n";
+    echo "Disallow: /feed/\n";
+    echo "\n";
+
+    // Key pages
+    echo "# Key pages\n";
+    $pages = get_posts( [
+        'post_type'      => 'page',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'orderby'        => 'menu_order',
+        'order'          => 'ASC',
+        'fields'         => 'ids',
+    ] );
+    foreach ( $pages as $page_id ) {
+        $url = get_permalink( $page_id );
+        if ( $url ) {
+            echo "- {$url}\n";
+        }
+    }
+
+    echo "\n";
+    echo "# Contact\n";
+    echo "Email: {$email}\n";
+    echo "Website: {$site_url}\n";
+    exit;
+}
+add_action( 'template_redirect', 'flairltd_llms_txt_output', 1 );
+
+/**
+ * Collect all URLs for the sitemap.
+ */
+function flairltd_get_sitemap_urls() {
+    $urls = [];
+
+    // Homepage
+    $urls[] = [
+        'loc'        => home_url( '/' ),
+        'lastmod'    => gmdate( 'Y-m-d\TH:i:s+00:00' ),
+        'changefreq' => 'daily',
+        'priority'   => '1.0',
+    ];
+
+    // Published pages
+    $pages = get_posts( [
+        'post_type'      => 'page',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'orderby'        => 'modified',
+        'order'          => 'DESC',
+        'fields'         => 'ids',
+    ] );
+
+    foreach ( $pages as $page_id ) {
+        $page_url = get_permalink( $page_id );
+        if ( ! $page_url || trailingslashit( $page_url ) === trailingslashit( home_url( '/' ) ) ) {
+            continue; // Skip homepage duplicate
+        }
+
+        $lastmod = get_the_modified_date( 'Y-m-d\TH:i:s+00:00', $page_id );
+        if ( ! $lastmod ) {
+            $lastmod = get_the_date( 'Y-m-d\TH:i:s+00:00', $page_id );
+        }
+
+        $urls[] = [
+            'loc'        => $page_url,
+            'lastmod'    => $lastmod,
+            'changefreq' => 'weekly',
+            'priority'   => '0.8',
+        ];
+    }
+
+    // Published posts (if any)
+    $posts = get_posts( [
+        'post_type'      => 'post',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'orderby'        => 'modified',
+        'order'          => 'DESC',
+        'fields'         => 'ids',
+    ] );
+
+    foreach ( $posts as $post_id ) {
+        $post_url = get_permalink( $post_id );
+        if ( ! $post_url ) {
+            continue;
+        }
+
+        $lastmod = get_the_modified_date( 'Y-m-d\TH:i:s+00:00', $post_id );
+        if ( ! $lastmod ) {
+            $lastmod = get_the_date( 'Y-m-d\TH:i:s+00:00', $post_id );
+        }
+
+        $urls[] = [
+            'loc'        => $post_url,
+            'lastmod'    => $lastmod,
+            'changefreq' => 'monthly',
+            'priority'   => '0.6',
+        ];
+    }
+
+    // Allow other functions to add URLs
+    return apply_filters( 'flairltd_sitemap_urls', $urls );
+}

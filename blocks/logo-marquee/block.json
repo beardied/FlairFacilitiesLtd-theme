@@ -1,0 +1,57 @@
+{
+    "$schema": "https://schemas.wp.org/wp/6.5/block.json",
+    "apiVersion": 3,
+    "name": "flairltd/logo-marquee",
+    "version": "1.0.0",
+    "title": "Logo Marquee",
+    "category": "flairltd",
+    "icon": "slides",
+    "description": "Full-width scrolling logo marquee with customisable speed, colours, and spacing.",
+    "attributes": {
+        "logos": {
+            "type": "array",
+            "default": []
+        },
+        "bgColor": {
+            "type": "string",
+            "default": "#f8fafc"
+        },
+        "scrollSpeed": {
+            "type": "number",
+            "default": 30
+        },
+        "logoMaxWidth": {
+            "type": "number",
+            "default": 150
+        },
+        "logoMaxHeight": {
+            "type": "number",
+            "default": 80
+        },
+        "paddingTop": {
+            "type": "number",
+            "default": 60
+        },
+        "paddingBottom": {
+            "type": "number",
+            "default": 60
+        },
+        "gap": {
+            "type": "number",
+            "default": 80
+        },
+        "pauseOnHover": {
+            "type": "boolean",
+            "default": true
+        }
+    },
+    "supports": {
+        "anchor": true,
+        "align": ["full"],
+        "spacing": {
+            "margin": true,
+            "padding": false
+        }
+    },
+    "render": "file:./render.php"
+}
