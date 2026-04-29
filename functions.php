@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'FLAIR_LTD_VERSION', '3.12.0' );
+define( 'FLAIR_LTD_VERSION', '3.12.1' );
 define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
@@ -255,7 +255,7 @@ function flairltd_preload_child_hero_image() {
 add_action( 'wp_head', 'flairltd_preload_child_hero_image', 1 );
 
 function flairltd_block_editor_assets() {
-    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list', 'faq-section', 'page-menu', 'contact-form' ];
+    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list', 'faq-section', 'page-menu', 'contact-form', 'logo-marquee' ];
     $deps = [ 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-i18n' ];
 
     foreach ( $blocks as $b ) {
