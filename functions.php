@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'FLAIR_LTD_VERSION', '3.12.3' );
+define( 'FLAIR_LTD_VERSION', '3.12.4' );
 define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
@@ -1116,9 +1116,28 @@ function flairltd_get_sitemap_urls() {
     $urls = [];
 
     // Homepage
+    $front_page_id = (int) get_option( 'page_on_front' );
+    if ( $front_page_id ) {
+        $home_lastmod = get_the_modified_date( 'Y-m-d\TH:i:s+00:00', $front_page_id );
+        if ( ! $home_lastmod ) {
+            $home_lastmod = get_the_date( 'Y-m-d\TH:i:s+00:00', $front_page_id );
+        }
+    } else {
+        // Blog homepage — use the most recently modified post/page.
+        $latest = get_posts( [
+            'post_type'      => [ 'page', 'post' ],
+            'post_status'    => 'publish',
+            'posts_per_page' => 1,
+            'orderby'        => 'modified',
+            'order'          => 'DESC',
+            'fields'         => 'ids',
+        ] );
+        $home_lastmod = ! empty( $latest ) ? get_the_modified_date( 'Y-m-d\TH:i:s+00:00', $latest[0] ) : gmdate( 'Y-m-d\TH:i:s+00:00' );
+    }
+
     $urls[] = [
         'loc'        => home_url( '/' ),
-        'lastmod'    => gmdate( 'Y-m-d\TH:i:s+00:00' ),
+        'lastmod'    => $home_lastmod,
         'changefreq' => 'daily',
         'priority'   => '1.0',
     ];
