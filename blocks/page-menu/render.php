@@ -12,11 +12,23 @@ if ( ! is_singular( 'page' ) ) {
 }
 
 $current_id = get_the_ID();
-$parent_id = wp_get_post_parent_id( $current_id );
 
-// If no parent, show current page's children (if any).
-if ( ! $parent_id ) {
-    $parent_id = $current_id;
+// If the current page has children, treat it as a "parent" view.
+$has_children = get_pages( [
+    'child_of'       => $current_id,
+    'parent'         => $current_id,
+    'posts_per_page' => 1,
+] );
+
+if ( $has_children ) {
+    $parent_id      = $current_id;
+    $show_back_link = false;
+} else {
+    $parent_id = wp_get_post_parent_id( $current_id );
+    if ( ! $parent_id ) {
+        $parent_id = $current_id;
+    }
+    $show_back_link = ( $parent_id !== $current_id );
 }
 
 $siblings = get_pages( [
@@ -27,14 +39,13 @@ $siblings = get_pages( [
     'exclude'     => $current_id,
 ] );
 
-// Also exclude the parent itself if it's the current page.
 if ( empty( $siblings ) && $parent_id === $current_id ) {
     return '';
 }
 
-$parent_page = get_post( $parent_id );
+$parent_page  = get_post( $parent_id );
 $parent_title = $parent_page ? $parent_page->post_title : '';
-$parent_url = $parent_page ? get_permalink( $parent_page->ID ) : '';
+$parent_url   = $parent_page ? get_permalink( $parent_page->ID ) : '';
 
 $section_style = '';
 if ( $bg_gradient ) {
@@ -54,7 +65,7 @@ if ( $animate && $bg_gradient ) {
             <h2 class="flairltd-page-menu-title" style="color: <?php echo esc_attr( $title_color ); ?>"><?php echo esc_html( $title ); ?></h2>
         <?php endif; ?>
 
-        <?php if ( $parent_page && $parent_id !== $current_id ) : ?>
+        <?php if ( $parent_page && $show_back_link ) : ?>
             <div class="flairltd-page-menu-parent">
                 <a href="<?php echo esc_url( $parent_url ); ?>" class="flairltd-page-menu-parent-link">
                     <span class="flairltd-page-menu-parent-name"><?php echo esc_html( $parent_title ); ?></span>
