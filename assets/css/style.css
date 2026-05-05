@@ -2026,6 +2026,36 @@ body.has-page-title-bar .wp-block-post-content {
     flex-direction: row-reverse;
 }
 
+.ffl-post-tile-small {
+    height: 100%;
+}
+
+.ffl-post-tile-small .wp-block-post-featured-image {
+    margin: 0;
+    overflow: hidden;
+}
+
+.ffl-post-tile-small .wp-block-post-featured-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.ffl-post-tile-small:hover .wp-block-post-featured-image img {
+    transform: scale(1.05);
+}
+
+.ffl-post-tile-small .wp-block-post-title a {
+    color: var(--ffl-dark);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.ffl-post-tile-small .wp-block-post-title a:hover {
+    color: var(--ffl-primary);
+}
+
 @media (max-width: 600px) {
     .ffl-post-nav a {
         font-size: 0.9rem;
