@@ -373,7 +373,9 @@ p.has-text-align-center,
 /* ========== HERO (FULL WIDTH) ========== */
 .ffl-hero {
     position: relative;
-    background: var(--ffl-primary);
+    background: linear-gradient(135deg, var(--ffl-dark) 0%, var(--ffl-primary) 60%, var(--ffl-dark) 100%);
+    background-size: 200% 200%;
+    animation: heroGradient 12s ease infinite;
     min-height: 580px;
     display: flex;
     align-items: center;
@@ -389,7 +391,9 @@ p.has-text-align-center,
 .ffl-hero-gradient {
     position: absolute;
     inset: 0;
-    background: var(--ffl-primary);
+    background: linear-gradient(135deg, var(--ffl-dark) 0%, var(--ffl-primary) 60%, var(--ffl-dark) 100%);
+    background-size: 200% 200%;
+    animation: heroGradient 12s ease infinite;
 }
 .ffl-hero-gradient::before {
     content: '';
@@ -1517,7 +1521,9 @@ p.has-text-align-center,
 
 .ffl-page-title-bar {
     position: relative;
-    background: var(--ffl-primary);
+    background: linear-gradient(135deg, var(--ffl-dark) 0%, var(--ffl-primary) 60%, var(--ffl-dark) 100%);
+    background-size: 200% 200%;
+    animation: heroGradient 12s ease infinite;
     padding: 60px 20px;
     text-align: center;
     margin-top: 0;
@@ -1734,13 +1740,13 @@ body.has-page-title-bar .wp-block-post-content {
 .ffl-post-content table thead,
 .wp-block-post-content table thead,
 .wp-block-table table thead {
-    background: linear-gradient(135deg, var(--ffl-dark) 0%, var(--ffl-primary) 100%);
+    background: var(--ffl-primary);
 }
 
 .ffl-post-content table tbody tr:first-child th,
 .wp-block-post-content table tbody tr:first-child th,
 .wp-block-table table tbody tr:first-child th {
-    background: linear-gradient(135deg, var(--ffl-dark) 0%, var(--ffl-primary) 100%);
+    background: var(--ffl-primary);
     color: #fff;
     font-weight: 700;
     text-align: left;
