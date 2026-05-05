@@ -6,8 +6,6 @@
     var SelectControl = wp.components.SelectControl;
     var ToggleControl = wp.components.ToggleControl;
     var TextControl = wp.components.TextControl;
-    var ColorPicker = wp.components.ColorPicker;
-    var BaseControl = wp.components.BaseControl;
 
     var colors = window.flairltdCustomizerColors || {};
     var brandColors = [
@@ -19,11 +17,19 @@
         { label: 'White (#ffffff)', value: '#ffffff' },
         { label: 'Light Gray (#f8fafc)', value: '#f8fafc' },
     ];
+    var textColors = [
+        { label: 'White', value: '#ffffff' },
+        { label: 'Black', value: '#0a1628' },
+        { label: 'Dark Navy', value: '#1e3a8a' },
+    ];
 
     wp.blocks.registerBlockType('flairltd/cta-section', {
         edit: function(props) {
             var attr = props.attributes;
             var phone = (window.flairltdCustomizerColors && window.flairltdCustomizerColors.phone) || '020 7998 9005';
+            var btnBg = attr.buttonGradient
+                ? 'linear-gradient(135deg, ' + attr.buttonBgColor + ' 0%, ' + attr.buttonBgColor2 + ' 100%)'
+                : attr.buttonBgColor;
 
             return el('div', { style: { border: '1px dashed #666', padding: '16px' } },
                 el(InspectorControls, {},
@@ -36,11 +42,11 @@
                     el(PanelBody, { title: 'Call Button' },
                         el(ToggleControl, { label: 'Show Button', checked: attr.showButton, onChange: function(v) { props.setAttributes({showButton: v}); } }),
                         attr.showButton ? el(TextControl, { label: 'Button Text', value: attr.buttonText, onChange: function(v) { props.setAttributes({buttonText: v}); } }) : null,
-                        attr.showButton ? el(BaseControl, { label: 'Phone Number (from Customizer): ' + phone }, el('span', { style: { color: '#666', fontSize: '12px' } }, 'Edit in Customizer → Contact Info')) : null,
+                        attr.showButton ? el('p', { style: { fontSize: '12px', color: '#666', marginTop: '0' } }, 'Phone: ' + phone) : null,
                         attr.showButton ? el(SelectControl, { label: 'Button Background', value: attr.buttonBgColor, options: brandColors, onChange: function(v) { props.setAttributes({buttonBgColor: v}); } }) : null,
                         attr.showButton ? el(ToggleControl, { label: 'Button Gradient', checked: attr.buttonGradient, onChange: function(v) { props.setAttributes({buttonGradient: v}); } }) : null,
                         attr.showButton && attr.buttonGradient ? el(SelectControl, { label: 'Button Gradient Second Colour', value: attr.buttonBgColor2, options: brandColors, onChange: function(v) { props.setAttributes({buttonBgColor2: v}); } }) : null,
-                        attr.showButton ? el(BaseControl, { label: 'Button Text Colour' }, el(ColorPicker, { color: attr.buttonTextColor, onChangeComplete: function(c) { props.setAttributes({buttonTextColor: c.hex}); }, disableAlpha: true })) : null
+                        attr.showButton ? el(SelectControl, { label: 'Button Text Colour', value: attr.buttonTextColor, options: textColors, onChange: function(v) { props.setAttributes({buttonTextColor: v}); } }) : null
                     )
                 ),
 
@@ -50,9 +56,20 @@
                 el(InnerBlocks, {}),
 
                 attr.showButton ? el('div', { style: { marginTop: '16px', textAlign: 'center' } },
-                    el('a', { href: '#', style: { display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRadius: '8px', textDecoration: 'none', fontWeight: '600', background: attr.buttonGradient ? 'linear-gradient(135deg, ' + attr.buttonBgColor + ' 0%, ' + attr.buttonBgColor2 + ' 100%)' : attr.buttonBgColor, color: attr.buttonTextColor },
-                        el('span', {}, attr.buttonText + ' ' + phone)
-                    )
+                    el('a', {
+                        href: '#',
+                        style: {
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '12px 24px',
+                            borderRadius: '8px',
+                            textDecoration: 'none',
+                            fontWeight: '600',
+                            background: btnBg,
+                            color: attr.buttonTextColor
+                        }
+                    }, attr.buttonText + ' ' + phone)
                 ) : null
             );
         },
