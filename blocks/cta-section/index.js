@@ -51,8 +51,7 @@
 
                 attr.showButton ? el('div', { style: { marginTop: '16px', textAlign: 'center' } },
                     el('a', { href: '#', style: { display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRadius: '8px', textDecoration: 'none', fontWeight: '600', background: attr.buttonGradient ? 'linear-gradient(135deg, ' + attr.buttonBgColor + ' 0%, ' + attr.buttonBgColor2 + ' 100%)' : attr.buttonBgColor, color: attr.buttonTextColor },
-                        el('span', {}, attr.buttonText),
-                        el('span', { style: { fontSize: '12px', opacity: 0.8 } }, phone)
+                        el('span', {}, attr.buttonText + ' ' + phone)
                     )
                 ) : null
             );

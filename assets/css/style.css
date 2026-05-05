@@ -1711,12 +1711,6 @@ body.has-page-title-bar .wp-block-post-content {
     box-shadow: 0 12px 32px rgba(0,0,0,0.35);
 }
 
-.ffl-cta-button-number {
-    font-size: 0.9rem;
-    opacity: 0.85;
-    color: inherit;
-}
-
 @media (max-width: 600px) {
     .ffl-cta-button {
         padding: 14px 24px;
