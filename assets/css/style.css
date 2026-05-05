@@ -1569,6 +1569,13 @@ body.has-page-title-bar .wp-block-post-content {
     margin-top: 40px !important;
 }
 
+/* Single post title bar — viewport breakout from constrained container */
+.single-post .ffl-page-title-bar {
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+}
+
 @media (max-width: 600px) {
     .ffl-page-title-bar {
         padding: 50px 16px;

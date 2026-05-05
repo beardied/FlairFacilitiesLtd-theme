@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'FLAIR_LTD_VERSION', '3.13.7' );
+define( 'FLAIR_LTD_VERSION', '3.13.8' );
 define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
@@ -193,6 +193,36 @@ function flairltd_page_title_gradient_bar( $block_content, $block ) {
     return '<div class="ffl-page-title-bar alignfull"><div class="ffl-page-title-inner">' . $block_content . '</div></div>';
 }
 add_filter( 'render_block', 'flairltd_page_title_gradient_bar', 10, 2 );
+
+/**
+ * Extract the first H1 from single post content and prepend a full-width title bar.
+ */
+function flairltd_post_first_h1_title_bar( $block_content, $block ) {
+    if ( $block['blockName'] !== 'core/post-content' ) {
+        return $block_content;
+    }
+
+    if ( ! is_singular( 'post' ) ) {
+        return $block_content;
+    }
+
+    // Find the first <h1> tag, extract it for the title bar, and remove from content.
+    if ( preg_match( '/<h1[^>]*>(.*?)<\/h1>/is', $block_content, $matches, PREG_OFFSET_CAPTURE ) ) {
+        $h1_html = $matches[0][0];
+        $h1_pos  = $matches[0][1];
+        $h1_text = $matches[1][0];
+
+        // Remove the H1 from the content.
+        $block_content = substr_replace( $block_content, '', $h1_pos, strlen( $h1_html ) );
+
+        // Prepend title bar before the content block.
+        $title_bar = '<div class="ffl-page-title-bar alignfull"><div class="ffl-page-title-inner"><h1 class="wp-block-post-title">' . $h1_text . '</h1></div></div>';
+        $block_content = $title_bar . $block_content;
+    }
+
+    return $block_content;
+}
+add_filter( 'render_block', 'flairltd_post_first_h1_title_bar', 10, 2 );
 
 /**
  * Restore real image src after EWWW replaces it with a placeholder on LCP images.
@@ -544,6 +574,15 @@ function flairltd_body_class( $classes ) {
             }
         }
     }
+
+    // Add title bar class on single posts that have an H1 in their content
+    if ( is_singular( 'post' ) ) {
+        $post = get_post();
+        if ( $post && preg_match( '/<h1[\s>]/i', $post->post_content ) ) {
+            $classes[] = 'has-page-title-bar';
+        }
+    }
+
     return $classes;
 }
 add_filter( 'body_class', 'flairltd_body_class' );
