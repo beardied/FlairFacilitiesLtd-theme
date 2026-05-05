@@ -5,32 +5,13 @@
     <div class="wp-block-group">
         <!-- wp:query-title {"type":"archive","textAlign":"center","style":{"spacing":{"margin":{"bottom":"48px"}}},"fontSize":"hero"} /-->
 
-        <!-- wp:query {"queryId":1,"query":{"perPage":9,"postType":"post","order":"desc","orderBy":"date","inherit":true},"displayLayout":{"type":"flex","columns":3},"layout":{"type":"default"}} -->
+        <!-- wp:query {"queryId":1,"query":{"perPage":10,"postType":"post","order":"desc","orderBy":"date","inherit":true},"layout":{"type":"default"}} -->
         <div class="wp-block-query">
-            <!-- wp:post-template {"className":"ffl-post-grid"} -->
-            <!-- wp:group {"className":"ffl-post-tile","style":{"spacing":{"padding":{"top":"0","right":"0","bottom":"0","left":"0"}}},"layout":{"type":"default"}} -->
-            <div class="wp-block-group ffl-post-tile">
-                <!-- wp:post-featured-image {"isLink":true,"width":"100%","height":"220px","style":{"border":{"radius":{"topLeft":"12px","topRight":"12px","bottomLeft":"0px","bottomRight":"0px"}}}} /-->
-                <!-- wp:group {"style":{"spacing":{"padding":{"top":"24px","right":"24px","bottom":"24px","left":"24px"}}},"layout":{"type":"default"}} -->
-                <div class="wp-block-group" style="padding-top:24px;padding-right:24px;padding-bottom:24px;padding-left:24px">
-                    <!-- wp:post-title {"isLink":true,"level":3,"style":{"typography":{"fontSize":"1.25rem","fontWeight":"700"},"spacing":{"margin":{"top":"0","bottom":"12px"}}}} /-->
-                    <!-- wp:post-excerpt {"moreText":"Read more →","excerptLength":20,"style":{"spacing":{"margin":{"top":"0","bottom":"16px"}},"typography":{"fontSize":"0.95rem","lineHeight":"1.5"}}} /-->
-                    <!-- wp:post-date {"style":{"typography":{"fontSize":"0.85rem"},"color":{"text":"#6b7280"}},"className":"ffl-post-tile-date"} /-->
-                </div>
-                <!-- /wp:group -->
-            </div>
-            <!-- /wp:group -->
-            <!-- /wp:post-template -->
-
-            <!-- wp:query-pagination {"paginationArrow":"arrow","align":"center","style":{"spacing":{"margin":{"top":"48px"}}}} -->
-            <!-- wp:query-pagination-previous /-->
-            <!-- wp:query-pagination-numbers /-->
-            <!-- wp:query-pagination-next /-->
-            <!-- /wp:query-pagination -->
-        </div>
-        <!-- /wp:query -->
-    </div>
-    <!-- /wp:group -->
-</main>
-<!-- /wp:group -->
-<!-- wp:template-part {"slug":"footer","tagName":"footer"} /-->
+            <!-- wp:post-template {"className":"ffl-post-list"} -->
+            <!-- wp:group {"className":"ffl-post-tile ffl-post-tile-wide","style":{"spacing":{"padding":{"top":"0","right":"0","bottom":"0","left":"0"}}},"layout":{"type":"default"}} -->
+            <div class="wp-block-group ffl-post-tile ffl-post-tile-wide">
+                <div class="ffl-post-tile-row">
+                    <!-- wp:post-featured-image {"isLink":true,"width":"100%","height":"100%","style":{"border":{"radius":{"topLeft":"12px","topRight":"0px","bottomLeft":"12px","bottomRight":"0px"}}}} /-->
+                    <!-- wp:group {"style":{"spacing":{"padding":{"top":"28px","right":"32px","bottom":"28px","left":"32px"}}},"layout":{"type":"default"}} -->
+                    <div class="wp-block-group" style="padding-top:28px;padding-right:32px;padding-bottom:28px;padding-left:32px">
+                        <!-- wp:post-title {"isLink":true,"level":3,"style":{"typography":{"fontSize":"1.35rem","fontWeight":"700"},"spacing":{"margin":{"top":"0","bottom":"12px"}}}} /--> <!-- wp:post-excerpt {"moreText":"Read more →","excerptLength":30,"style":{"spacing":{"margin":{"top":"0","bottom":"16px"}},"typography":{"fontSize":"1rem","lineHeight":"1.55"}}} /--> <!-- wp:post-date {"style":{"typography":{"fontSize":"0.85rem"},"color":{"text":"#6b7280"}},"className":"ffl-post-tile-date"} /--> </div> <!-- /wp:group --> </div> </div> <!-- /wp:group --> <!-- /wp:post-template --> <!-- wp:query-pagination {"paginationArrow":"arrow","align":"center","style":{"spacing":{"margin":{"top":"48px"}}}} --> <!-- wp:query-pagination-previous /--> <!-- wp:query-pagination-numbers /--> <!-- wp:query-pagination-next /--> <!-- /wp:query-pagination --> </div> <!-- /wp:query --> </div> <!-- /wp:group --> </main> <!-- /wp:group --> <!-- wp:template-part {"slug":"footer","tagName":"footer"} /-->
