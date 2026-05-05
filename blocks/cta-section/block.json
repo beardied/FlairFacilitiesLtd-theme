@@ -1,0 +1,62 @@
+{
+    "$schema": "https://schemas.wp.org/wp/6.5/block.json",
+    "apiVersion": 3,
+    "name": "flairltd/cta-section",
+    "version": "1.0.0",
+    "title": "CTA Section",
+    "category": "flairltd",
+    "icon": "phone",
+    "description": "Full-width call-to-action section with inner blocks support, background colours, and a centred Call Now button.",
+    "attributes": {
+        "bgColor": {
+            "type": "string",
+            "default": "#1e3a8a"
+        },
+        "bgColor2": {
+            "type": "string",
+            "default": "#2563eb"
+        },
+        "bgGradient": {
+            "type": "boolean",
+            "default": false
+        },
+        "animate": {
+            "type": "boolean",
+            "default": true
+        },
+        "showButton": {
+            "type": "boolean",
+            "default": true
+        },
+        "buttonText": {
+            "type": "string",
+            "default": "Call Now"
+        },
+        "buttonBgColor": {
+            "type": "string",
+            "default": "#dc2626"
+        },
+        "buttonBgColor2": {
+            "type": "string",
+            "default": "#ea580c"
+        },
+        "buttonGradient": {
+            "type": "boolean",
+            "default": true
+        },
+        "buttonTextColor": {
+            "type": "string",
+            "default": "#ffffff"
+        }
+    },
+    "supports": {
+        "anchor": true,
+        "align": ["full", "wide"],
+        "html": false,
+        "spacing": {
+            "margin": true,
+            "padding": true
+        }
+    },
+    "render": "file:./render.php"
+}

@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'FLAIR_LTD_VERSION', '3.12.6' );
+define( 'FLAIR_LTD_VERSION', '3.13.0' );
 define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
@@ -119,7 +119,7 @@ function flairltd_disable_emojis() {
 add_action( 'init', 'flairltd_disable_emojis' );
 
 function flairltd_register_blocks() {
-    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list', 'faq-section', 'page-menu', 'contact-form', 'logo-marquee' ];
+    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list', 'faq-section', 'page-menu', 'contact-form', 'logo-marquee', 'cta-section' ];
     foreach ( $blocks as $b ) {
         register_block_type( FLAIR_LTD_DIR . 'blocks/' . $b );
     }
@@ -130,7 +130,7 @@ add_action( 'init', 'flairltd_register_blocks' );
  * Force full-width alignment on section blocks so their backgrounds always span the viewport.
  */
 function flairltd_force_fullwidth_blocks( $block_content, $block ) {
-    $fullwidth_blocks = [ 'flairltd/faq-section', 'flairltd/page-menu', 'flairltd/logo-marquee' ];
+    $fullwidth_blocks = [ 'flairltd/faq-section', 'flairltd/page-menu', 'flairltd/logo-marquee', 'flairltd/cta-section' ];
     if ( in_array( $block['blockName'], $fullwidth_blocks, true ) ) {
         if ( strpos( $block_content, 'alignfull' ) === false ) {
             $block_content = preg_replace(
@@ -255,7 +255,7 @@ function flairltd_preload_child_hero_image() {
 add_action( 'wp_head', 'flairltd_preload_child_hero_image', 1 );
 
 function flairltd_block_editor_assets() {
-    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list', 'faq-section', 'page-menu', 'contact-form', 'logo-marquee' ];
+    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list', 'faq-section', 'page-menu', 'contact-form', 'logo-marquee', 'cta-section' ];
     $deps = [ 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-i18n' ];
 
     foreach ( $blocks as $b ) {
@@ -277,6 +277,7 @@ function flairltd_block_editor_assets() {
         'orange'  => get_theme_mod( 'flairltd_orange_color', '#ea580c' ),
         'dark'    => get_theme_mod( 'flairltd_dark_color', '#0a1628' ),
         'email'   => get_theme_mod( 'flairltd_email', 'info@flairfacilities.co.uk' ),
+        'phone'   => get_theme_mod( 'flairltd_phone', '020 7998 9005' ),
     ] );
 }
 add_action( 'enqueue_block_editor_assets', 'flairltd_block_editor_assets' );
