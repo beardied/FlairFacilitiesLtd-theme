@@ -1821,3 +1821,15 @@ body.has-page-title-bar .wp-block-post-content {
         white-space: nowrap;
     }
 }
+
+
+/* =========================================================
+   Single Post Images — Centred
+   ========================================================= */
+
+.single-post .wp-block-post-content img,
+.single-post .wp-block-post-content .wp-block-image {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
