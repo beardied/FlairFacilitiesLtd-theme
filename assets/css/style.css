@@ -1900,6 +1900,14 @@ body.has-page-title-bar .wp-block-post-content {
     gap: 28px;
 }
 
+/* Post index — tighten title/date gap */
+.ffl-post-tile-wide .wp-block-post-title {
+    margin-bottom: 4px !important;
+}
+.ffl-post-tile-wide .wp-block-post-date {
+    margin-top: 0 !important;
+}
+
 @media (max-width: 992px) {
     .ffl-post-grid.is-flex-container {
         gap: 20px;
@@ -1973,92 +1981,210 @@ body.has-page-title-bar .wp-block-post-content {
    ========================================================= */
 
 .ffl-related-posts {
-    margin-top: 64px;
-    padding-top: 48px;
-    border-top: 1px solid var(--ffl-gray);
+    margin-top: 80px;
+    padding-top: 0;
+    border-top: none;
 }
 
 .ffl-related-posts-title {
     text-align: center;
-    margin-bottom: 32px;
-    font-size: 1.75rem;
-    font-weight: 700;
+    margin-bottom: 36px;
+    font-size: 1.5rem;
+    font-weight: 800;
     color: var(--ffl-dark);
+    letter-spacing: -0.3px;
 }
 
-.ffl-post-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.ffl-related-posts .wp-block-query {
+    margin: 0;
+}
+
+/* Flex grid for related posts */
+.ffl-related-posts .ffl-post-grid.is-flex-container {
     gap: 20px;
-    margin-top: 48px;
-    padding-top: 32px;
-    border-top: 1px solid var(--ffl-gray);
 }
 
-.ffl-post-nav a {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 20px;
+/* Related post cards */
+.ffl-related-posts .ffl-post-tile-small {
     background: var(--ffl-white);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 2px 12px rgba(10,22,40,0.06);
     border: 1px solid var(--ffl-gray);
-    border-radius: var(--radius);
-    color: var(--ffl-dark);
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    max-width: 45%;
-}
-
-.ffl-post-nav a:hover {
-    background: var(--ffl-primary);
-    color: #fff;
-    border-color: var(--ffl-primary);
-}
-
-.ffl-post-nav-prev {
-    margin-right: auto;
-}
-
-.ffl-post-nav-next {
-    margin-left: auto;
-    flex-direction: row-reverse;
-}
-
-.ffl-post-tile-small {
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
     height: 100%;
+    position: relative;
 }
 
-.ffl-post-tile-small .wp-block-post-featured-image {
+.ffl-related-posts .ffl-post-tile-small:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Fallback branded image area for posts without featured images */
+.ffl-related-posts .ffl-post-tile-small::before {
+    content: '';
+    display: block;
+    aspect-ratio: 16 / 10;
+    background: linear-gradient(135deg, var(--ffl-primary) 0%, var(--ffl-dark) 100%);
+    position: relative;
+}
+
+.ffl-related-posts .ffl-post-tile-small:has(.wp-block-post-featured-image)::before {
+    display: none;
+}
+
+.ffl-related-posts .ffl-post-tile-small .wp-block-post-featured-image {
     margin: 0;
     overflow: hidden;
+    aspect-ratio: 16 / 10;
 }
 
-.ffl-post-tile-small .wp-block-post-featured-image img {
+.ffl-related-posts .ffl-post-tile-small .wp-block-post-featured-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: transform 0.4s ease;
 }
 
-.ffl-post-tile-small:hover .wp-block-post-featured-image img {
+.ffl-related-posts .ffl-post-tile-small:hover .wp-block-post-featured-image img {
     transform: scale(1.05);
 }
 
-.ffl-post-tile-small .wp-block-post-title a {
+.ffl-related-posts .ffl-post-tile-small .wp-block-group {
+    padding: 16px 18px 18px;
+}
+
+.ffl-related-posts .ffl-post-tile-small .wp-block-post-title {
+    margin: 0 0 4px !important;
+    font-size: 0.9rem;
+    line-height: 1.35;
+}
+
+.ffl-related-posts .ffl-post-tile-small .wp-block-post-title a {
     color: var(--ffl-dark);
     text-decoration: none;
+    font-weight: 700;
     transition: color 0.2s ease;
 }
 
-.ffl-post-tile-small .wp-block-post-title a:hover {
+.ffl-related-posts .ffl-post-tile-small .wp-block-post-title a:hover {
     color: var(--ffl-primary);
 }
 
+.ffl-related-posts .ffl-post-tile-small .wp-block-post-date {
+    font-size: 0.75rem;
+    color: var(--ffl-muted);
+    margin: 0 !important;
+}
+
+/* Prev/Next Navigation */
+.ffl-post-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 60px;
+    padding-top: 40px;
+    border-top: 1px solid var(--ffl-gray);
+}
+
+.ffl-post-nav .wp-block-post-navigation-link {
+    margin: 0;
+}
+
+.ffl-post-nav a {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 24px;
+    background: var(--ffl-white);
+    border: 1px solid var(--ffl-gray);
+    border-radius: var(--radius-lg);
+    color: var(--ffl-dark);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.35;
+    transition: all 0.25s var(--ease-out);
+    box-shadow: 0 2px 12px rgba(10,22,40,0.04);
+    max-width: 100%;
+    height: 100%;
+}
+
+.ffl-post-nav a:hover {
+    background: var(--ffl-primary);
+    color: #fff;
+    border-color: var(--ffl-primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+}
+
+.ffl-post-nav-prev a {
+    align-items: flex-start;
+    text-align: left;
+}
+
+.ffl-post-nav-prev a::before {
+    content: '← Previous Post';
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ffl-muted);
+    transition: color 0.25s ease;
+}
+
+.ffl-post-nav-next a {
+    align-items: flex-end;
+    text-align: right;
+}
+
+.ffl-post-nav-next a::before {
+    content: 'Next Post →';
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ffl-muted);
+    transition: color 0.25s ease;
+}
+
+.ffl-post-nav a:hover::before {
+    color: rgba(255,255,255,0.7);
+}
+
+/* Hide empty nav slots */
+.ffl-post-nav .wp-block-post-navigation-link:empty {
+    display: none;
+}
+
+@media (max-width: 992px) {
+    .ffl-related-posts .ffl-post-grid.is-flex-container {
+        gap: 16px;
+    }
+}
+
 @media (max-width: 600px) {
+    .ffl-related-posts {
+        margin-top: 60px;
+    }
+    .ffl-related-posts-title {
+        font-size: 1.3rem;
+        margin-bottom: 28px;
+    }
+    .ffl-related-posts .ffl-post-grid.is-flex-container {
+        gap: 14px;
+    }
+    .ffl-post-nav {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
     .ffl-post-nav a {
-        font-size: 0.9rem;
-        padding: 10px 14px;
+        padding: 18px;
+        font-size: 0.95rem;
+    }
+    .ffl-post-nav-next a {
+        align-items: flex-start;
+        text-align: left;
     }
 }
