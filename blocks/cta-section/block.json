@@ -47,6 +47,22 @@
         "buttonTextColor": {
             "type": "string",
             "default": "#ffffff"
+        },
+        "paddingTop": {
+            "type": "number",
+            "default": 60
+        },
+        "paddingBottom": {
+            "type": "number",
+            "default": 60
+        },
+        "marginTop": {
+            "type": "number",
+            "default": 0
+        },
+        "marginBottom": {
+            "type": "number",
+            "default": 0
         }
     },
     "supports": {

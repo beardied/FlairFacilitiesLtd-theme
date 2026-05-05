@@ -9,12 +9,16 @@ $btn_bg        = ! empty( $attributes['buttonBgColor'] ) ? $attributes['buttonBg
 $btn_bg2       = ! empty( $attributes['buttonBgColor2'] ) ? $attributes['buttonBgColor2'] : '#ea580c';
 $btn_gradient  = ! empty( $attributes['buttonGradient'] );
 $btn_text_col  = ! empty( $attributes['buttonTextColor'] ) ? $attributes['buttonTextColor'] : '#ffffff';
+$pad_top       = isset( $attributes['paddingTop'] ) ? absint( $attributes['paddingTop'] ) : 60;
+$pad_bottom    = isset( $attributes['paddingBottom'] ) ? absint( $attributes['paddingBottom'] ) : 60;
+$margin_top    = isset( $attributes['marginTop'] ) ? absint( $attributes['marginTop'] ) : 0;
+$margin_bottom = isset( $attributes['marginBottom'] ) ? absint( $attributes['marginBottom'] ) : 0;
 
-$section_style = '';
+$section_style = 'padding-top: ' . esc_attr( $pad_top ) . 'px; padding-bottom: ' . esc_attr( $pad_bottom ) . 'px; margin-top: ' . esc_attr( $margin_top ) . 'px; margin-bottom: ' . esc_attr( $margin_bottom ) . 'px; ';
 if ( $bg_gradient ) {
-    $section_style = 'background: linear-gradient(135deg, ' . esc_attr( $bg_color ) . ' 0%, ' . esc_attr( $bg_color2 ) . ' 100%);';
+    $section_style .= 'background: linear-gradient(135deg, ' . esc_attr( $bg_color ) . ' 0%, ' . esc_attr( $bg_color2 ) . ' 100%);';
 } else {
-    $section_style = 'background-color: ' . esc_attr( $bg_color ) . ';';
+    $section_style .= 'background-color: ' . esc_attr( $bg_color ) . ';';
 }
 
 $wrapper_class = 'ffl-cta-section alignfull';

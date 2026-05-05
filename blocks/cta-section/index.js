@@ -6,6 +6,7 @@
     var SelectControl = wp.components.SelectControl;
     var ToggleControl = wp.components.ToggleControl;
     var TextControl = wp.components.TextControl;
+    var RangeControl = wp.components.RangeControl;
 
     var colors = window.flairltdCustomizerColors || {};
     var brandColors = [
@@ -47,6 +48,12 @@
                         attr.showButton ? el(ToggleControl, { label: 'Button Gradient', checked: attr.buttonGradient, onChange: function(v) { props.setAttributes({buttonGradient: v}); } }) : null,
                         attr.showButton && attr.buttonGradient ? el(SelectControl, { label: 'Button Gradient Second Colour', value: attr.buttonBgColor2, options: brandColors, onChange: function(v) { props.setAttributes({buttonBgColor2: v}); } }) : null,
                         attr.showButton ? el(SelectControl, { label: 'Button Text Colour', value: attr.buttonTextColor, options: textColors, onChange: function(v) { props.setAttributes({buttonTextColor: v}); } }) : null
+                    ),
+                    el(PanelBody, { title: 'Spacing' },
+                        el(RangeControl, { label: 'Top Padding (px)', value: attr.paddingTop, onChange: function(v) { props.setAttributes({paddingTop: v}); }, min: 0, max: 200, step: 5 }),
+                        el(RangeControl, { label: 'Bottom Padding (px)', value: attr.paddingBottom, onChange: function(v) { props.setAttributes({paddingBottom: v}); }, min: 0, max: 200, step: 5 }),
+                        el(RangeControl, { label: 'Top Margin (px)', value: attr.marginTop, onChange: function(v) { props.setAttributes({marginTop: v}); }, min: 0, max: 200, step: 5 }),
+                        el(RangeControl, { label: 'Bottom Margin (px)', value: attr.marginBottom, onChange: function(v) { props.setAttributes({marginBottom: v}); }, min: 0, max: 200, step: 5 })
                     )
                 ),
 
