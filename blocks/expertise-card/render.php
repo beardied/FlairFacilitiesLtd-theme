@@ -30,6 +30,6 @@ if ( $bgImg ) {
     <div class="ffl-expertise-card-content">
         <h3 style="color: <?php echo esc_attr( $titleColor ); ?>"><?php echo esc_html( $title ); ?></h3>
         <p><?php echo esc_html( $desc ); ?></p>
-        <a href="<?php echo esc_url( $url ); ?>" aria-label="<?php echo esc_attr( $btn . ' — ' . $title . ': ' . $desc ); ?>"><?php echo esc_html( $btn ); ?></a>
+        <a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( 'Read More About ' . $title ); ?></a>
     </div>
 </div>
