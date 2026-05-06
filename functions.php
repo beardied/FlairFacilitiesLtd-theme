@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'FLAIR_LTD_VERSION', '3.14.6' );
+define( 'FLAIR_LTD_VERSION', '3.14.7' );
 define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
@@ -1288,3 +1288,44 @@ function flairltd_get_sitemap_urls() {
     // Allow other functions to add URLs
     return apply_filters( 'flairltd_sitemap_urls', $urls );
 }
+
+/**
+ * Handle redirects via external map file
+ */
+add_action('template_redirect', function() {
+    // 1. Get the requested path and strip query strings (?abc=123)
+    $raw_uri = strtok($_SERVER['REQUEST_URI'], '?');
+    
+    // 2. Normalize by removing trailing slashes for consistent matching
+    $current_path = untrailingslashit(strtolower($raw_uri));
+    
+    // Default to root if empty after strip
+    if (empty($current_path)) { $current_path = '/'; }
+
+    // 3. Load the dedicated map file
+    $map_file = get_stylesheet_directory() . '/redirects-map.php';
+    if (!file_exists($map_file)) return;
+
+    $redirect_list = include $map_file;
+
+    // 4. CHECK 1: Exact Matches
+    foreach ($redirect_list as $old => $new) {
+        if (strpos($old, '[BULK]') === 0) continue; // Skip bulk for second pass
+
+        if (untrailingslashit(strtolower($old)) === $current_path) {
+            wp_redirect(home_url($new), 301);
+            exit;
+        }
+    }
+
+    // 5. CHECK 2: Bulk Patterns (For all the London area URLs)
+    foreach ($redirect_list as $old => $new) {
+        if (strpos($old, '[BULK]') === 0) {
+            $pattern = str_replace('[BULK]', '', $old);
+            if (strpos($current_path, untrailingslashit(strtolower($pattern))) === 0) {
+                wp_redirect(home_url($new), 301);
+                exit;
+            }
+        }
+    }
+}, 1); // Priority 1 to catch redirects as early as possible
