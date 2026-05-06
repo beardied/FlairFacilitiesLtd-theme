@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'FLAIR_LTD_VERSION', '3.14.8' );
+define( 'FLAIR_LTD_VERSION', '3.14.9' );
 define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
@@ -987,6 +987,206 @@ body{font-family:Inter,system-ui,sans-serif;background:#f1f5f9;margin:0;padding:
 HTML;
 }
 
+
+/**
+ * Comprehensive SEO Meta Tags
+ * Generates meta description, Open Graph, Twitter Cards, and canonical URLs.
+ */
+function flairltd_seo_meta_tags() {
+    // Skip if an SEO plugin is handling this
+    if ( defined( 'WPSEO_VERSION' ) || defined( 'RANK_MATH_VERSION' ) || class_exists( 'All_in_One_SEO_Pack' ) ) {
+        return;
+    }
+
+    $site_name = get_bloginfo( 'name' );
+    $canonical = '';
+    $title     = '';
+    $desc      = '';
+    $og_type   = 'website';
+    $og_image  = '';
+
+    // ── Helper: extract first paragraph from content ──
+    $get_first_paragraph = function( $content ) {
+        // Strip shortcodes and blocks
+        $text = strip_shortcodes( $content );
+        $text = wp_strip_all_tags( $text, true );
+        // Get first sentence or first 300 chars, then truncate to ~160
+        $text = trim( $text );
+        if ( empty( $text ) ) {
+            return '';
+        }
+        // Try to end at a sentence boundary within 160 chars
+        $max = 160;
+        if ( strlen( $text ) <= $max ) {
+            return $text;
+        }
+        $truncated = substr( $text, 0, $max );
+        // Look for last sentence end
+        $last_period = max( strrpos( $truncated, '.' ), strrpos( $truncated, '!' ), strrpos( $truncated, '?' ) );
+        if ( $last_period > 80 ) {
+            return substr( $truncated, 0, $last_period + 1 );
+        }
+        // Fall back to word boundary
+        $last_space = strrpos( $truncated, ' ' );
+        if ( $last_space > 60 ) {
+            return substr( $truncated, 0, $last_space ) . '…';
+        }
+        return $truncated . '…';
+    };
+
+    // ── Determine context ──
+    if ( is_front_page() && is_home() ) {
+        // Default homepage (blog listing)
+        $title = $site_name;
+        $desc  = get_bloginfo( 'description' );
+        $canonical = home_url( '/' );
+        $og_image = get_custom_logo() ? wp_get_attachment_image_url( get_theme_mod( 'custom_logo' ), 'full' ) : '';
+
+    } elseif ( is_front_page() ) {
+        // Static front page
+        $front_id = (int) get_option( 'page_on_front' );
+        $title = get_the_title( $front_id ) . ' — ' . $site_name;
+        $desc  = get_post_meta( $front_id, '_yoast_wpseo_metadesc', true );
+        if ( empty( $desc ) ) {
+            $front_page = get_post( $front_id );
+            if ( $front_page && ! empty( $front_page->post_excerpt ) ) {
+                $desc = wp_strip_all_tags( $front_page->post_excerpt, true );
+            } elseif ( $front_page ) {
+                $desc = $get_first_paragraph( $front_page->post_content );
+            }
+        }
+        $canonical = get_permalink( $front_id );
+        $og_image = get_the_post_thumbnail_url( $front_id, 'full' );
+        $og_type  = 'website';
+
+    } elseif ( is_home() ) {
+        // Posts page
+        $posts_page_id = (int) get_option( 'page_for_posts' );
+        $title = get_the_title( $posts_page_id ) . ' — ' . $site_name;
+        $desc  = get_bloginfo( 'description' );
+        $canonical = get_permalink( $posts_page_id );
+
+    } elseif ( is_singular() ) {
+        $post_id = get_the_ID();
+        $title = get_the_title( $post_id ) . ' — ' . $site_name;
+        $og_type = 'article';
+        $canonical = get_permalink( $post_id );
+        $og_image = get_the_post_thumbnail_url( $post_id, 'full' );
+
+        // Try to get description from multiple sources
+        $desc = get_post_meta( $post_id, '_yoast_wpseo_metadesc', true );
+        if ( empty( $desc ) ) {
+            $desc = get_post_meta( $post_id, 'rank_math_description', true );
+        }
+        if ( empty( $desc ) ) {
+            $post_obj = get_post( $post_id );
+            if ( $post_obj && ! empty( $post_obj->post_excerpt ) ) {
+                $desc = wp_strip_all_tags( $post_obj->post_excerpt, true );
+            } elseif ( $post_obj ) {
+                $desc = $get_first_paragraph( $post_obj->post_content );
+            }
+        }
+
+    } elseif ( is_category() || is_tag() || is_tax() ) {
+        $term = get_queried_object();
+        if ( $term ) {
+            $title = single_term_title( '', false ) . ' — ' . $site_name;
+            $desc = term_description( $term->term_id, $term->taxonomy );
+            $desc = wp_strip_all_tags( $desc, true );
+            $canonical = get_term_link( $term );
+        }
+
+    } elseif ( is_author() ) {
+        $author = get_queried_object();
+        $title = get_the_author_meta( 'display_name', $author->ID ) . ' — ' . $site_name;
+        $desc = get_the_author_meta( 'description', $author->ID );
+        $canonical = get_author_posts_url( $author->ID );
+
+    } elseif ( is_search() ) {
+        $title = 'Search results for "' . get_search_query() . '" — ' . $site_name;
+        $desc = 'Search results for "' . get_search_query() . '" on ' . $site_name;
+        $canonical = get_search_link();
+
+    } elseif ( is_404() ) {
+        $title = 'Page Not Found — ' . $site_name;
+        $desc = 'The page you are looking for could not be found. Browse our site or use the search to find what you need.';
+        $canonical = home_url( '/404' );
+
+    } elseif ( is_archive() ) {
+        $title = get_the_archive_title() . ' — ' . $site_name;
+        $desc = get_the_archive_description();
+        $desc = wp_strip_all_tags( $desc, true );
+        $canonical = get_pagenum_link( get_query_var( 'paged', 1 ) );
+    }
+
+    // Fallbacks
+    if ( empty( $title ) ) {
+        $title = wp_get_document_title();
+    }
+    if ( empty( $desc ) ) {
+        $desc = get_bloginfo( 'description' );
+    }
+    if ( empty( $canonical ) ) {
+        $canonical = home_url( add_query_arg( [] ) );
+    }
+
+    // Clean up
+    $desc = trim( $desc );
+    if ( strlen( $desc ) > 300 ) {
+        $desc = substr( $desc, 0, 300 );
+        $last_space = strrpos( $desc, ' ' );
+        if ( $last_space > 200 ) {
+            $desc = substr( $desc, 0, $last_space ) . '…';
+        }
+    }
+
+    // ── Output tags ──
+    echo "\n<!-- Flair SEO Meta Tags -->\n";
+
+    // Meta description
+    if ( ! empty( $desc ) ) {
+        echo '<meta name="description" content="' . esc_attr( $desc ) . '">' . "\n";
+    }
+
+    // Canonical
+    if ( ! empty( $canonical ) ) {
+        echo '<link rel="canonical" href="' . esc_url( $canonical ) . '">' . "\n";
+    }
+
+    // Robots (noindex for search/404, index for everything else)
+    if ( is_search() || is_404() ) {
+        echo '<meta name="robots" content="noindex, follow, max-image-preview:large">' . "\n";
+    } else {
+        echo '<meta name="robots" content="index, follow, max-image-preview:large">' . "\n";
+    }
+
+    // Open Graph
+    echo '<meta property="og:locale" content="' . esc_attr( get_locale() ) . '">' . "\n";
+    echo '<meta property="og:type" content="' . esc_attr( $og_type ) . '">' . "\n";
+    echo '<meta property="og:title" content="' . esc_attr( $title ) . '">' . "\n";
+    if ( ! empty( $desc ) ) {
+        echo '<meta property="og:description" content="' . esc_attr( $desc ) . '">' . "\n";
+    }
+    echo '<meta property="og:url" content="' . esc_url( $canonical ) . '">' . "\n";
+    echo '<meta property="og:site_name" content="' . esc_attr( $site_name ) . '">' . "\n";
+
+    if ( ! empty( $og_image ) ) {
+        echo '<meta property="og:image" content="' . esc_url( $og_image ) . '">' . "\n";
+    }
+
+    // Twitter Card
+    echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
+    echo '<meta name="twitter:title" content="' . esc_attr( $title ) . '">' . "\n";
+    if ( ! empty( $desc ) ) {
+        echo '<meta name="twitter:description" content="' . esc_attr( $desc ) . '">' . "\n";
+    }
+    if ( ! empty( $og_image ) ) {
+        echo '<meta name="twitter:image" content="' . esc_url( $og_image ) . '">' . "\n";
+    }
+
+    echo "<!-- /Flair SEO Meta Tags -->\n\n";
+}
+add_action( 'wp_head', 'flairltd_seo_meta_tags', 5 );
 
 /**
  * Custom XML Sitemap — plain XML for search engines only
