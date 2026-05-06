@@ -817,6 +817,35 @@ p.has-text-align-center,
     }
 }
 
+/* Footer Social Icons */
+.ffl-social-icons {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+
+.ffl-social-icons a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.6);
+    transition: all 0.25s var(--ease-out);
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.ffl-social-icons a:hover {
+    background: var(--ffl-primary);
+    color: #fff;
+    border-color: var(--ffl-primary);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(30,58,138,0.35);
+}
+
 /* Footer certification images */
 .flairltd-footer-certs {
     display: flex;
