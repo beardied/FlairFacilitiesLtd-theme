@@ -1,0 +1,56 @@
+{
+    "$schema": "https://schemas.wp.org/wp/6.5/block.json",
+    "apiVersion": 3,
+    "name": "flairltd/phone-button",
+    "version": "1.0.0",
+    "title": "Phone Button",
+    "category": "flairltd",
+    "icon": "phone",
+    "description": "A call-to-action button that automatically links to the phone number set in Customizer.",
+    "attributes": {
+        "buttonText": {
+            "type": "string",
+            "default": "Call Us Now"
+        },
+        "showPhoneNumber": {
+            "type": "boolean",
+            "default": true
+        },
+        "backgroundColor": {
+            "type": "string",
+            "default": "#dc2626"
+        },
+        "textColor": {
+            "type": "string",
+            "default": "#ffffff"
+        },
+        "borderRadius": {
+            "type": "number",
+            "default": 8
+        },
+        "fontSize": {
+            "type": "number",
+            "default": 16
+        },
+        "paddingX": {
+            "type": "number",
+            "default": 24
+        },
+        "paddingY": {
+            "type": "number",
+            "default": 14
+        },
+        "fullWidth": {
+            "type": "boolean",
+            "default": false
+        }
+    },
+    "render": "file:./render.php",
+    "supports": {
+        "align": [ "left", "center", "right" ],
+        "spacing": {
+            "margin": true,
+            "padding": true
+        }
+    }
+}

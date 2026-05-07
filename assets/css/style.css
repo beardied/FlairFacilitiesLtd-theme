@@ -2224,3 +2224,27 @@ body.has-page-title-bar .wp-block-post-content {
         text-align: left;
     }
 }
+
+/* Phone Button Block */
+.wp-block-flairltd-phone-button {
+    margin: 0;
+}
+.wp-block-flairltd-phone-button.alignleft {
+    text-align: left;
+}
+.wp-block-flairltd-phone-button.aligncenter {
+    text-align: center;
+}
+.wp-block-flairltd-phone-button.alignright {
+    text-align: right;
+}
+.ffl-phone-button {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.ffl-phone-button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+.ffl-phone-button svg {
+    flex-shrink: 0;
+}

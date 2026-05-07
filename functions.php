@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'FLAIR_LTD_VERSION', '3.14.17' );
+define( 'FLAIR_LTD_VERSION', '3.14.18' );
 define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
@@ -151,7 +151,7 @@ function flairltd_disable_emojis() {
 add_action( 'init', 'flairltd_disable_emojis' );
 
 function flairltd_register_blocks() {
-    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list', 'faq-section', 'page-menu', 'contact-form', 'logo-marquee', 'cta-section' ];
+    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list', 'faq-section', 'page-menu', 'contact-form', 'logo-marquee', 'cta-section', 'phone-button' ];
     foreach ( $blocks as $b ) {
         register_block_type( FLAIR_LTD_DIR . 'blocks/' . $b );
     }
@@ -317,7 +317,7 @@ function flairltd_preload_child_hero_image() {
 add_action( 'wp_head', 'flairltd_preload_child_hero_image', 1 );
 
 function flairltd_block_editor_assets() {
-    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list', 'faq-section', 'page-menu', 'contact-form', 'logo-marquee', 'cta-section' ];
+    $blocks = [ 'expertise-card', 'service-block', 'testimonial-block', 'stats-counter', 'hero', 'about-image', 'check-list', 'faq-section', 'page-menu', 'contact-form', 'logo-marquee', 'cta-section', 'phone-button' ];
     $deps = [ 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-i18n' ];
 
     foreach ( $blocks as $b ) {
