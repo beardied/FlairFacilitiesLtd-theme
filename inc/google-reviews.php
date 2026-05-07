@@ -1444,7 +1444,7 @@ function flairltd_manual_reviews_handle_actions() {
         $reply   = sanitize_textarea_field( $_POST['reply_comment'] ?? '' );
         $reply_date = sanitize_text_field( $_POST['reply_date'] ?? '' );
 
-        if ( empty( $name ) || empty( $comment ) || empty( $date ) ) {
+        if ( empty( $name ) || empty( $date ) ) {
             wp_redirect( admin_url( 'admin.php?page=flairltd_manual_reviews&error=required' ) );
             exit;
         }
@@ -1496,7 +1496,7 @@ function flairltd_manual_reviews_page_html() {
         <?php elseif ( isset( $_GET['deleted'] ) ) : ?>
             <div class="notice notice-success is-dismissible"><p>Review deleted.</p></div>
         <?php elseif ( isset( $_GET['error'] ) ) : ?>
-            <div class="notice notice-error is-dismissible"><p><?php echo esc_html( $_GET['error'] === 'required' ? 'Reviewer name, comment, and date are required.' : 'An error occurred.' ); ?></p></div>
+            <div class="notice notice-error is-dismissible"><p><?php echo esc_html( $_GET['error'] === 'required' ? 'Reviewer name and date are required.' : 'An error occurred.' ); ?></p></div>
         <?php endif; ?>
 
         <div class="metabox-holder">
@@ -1546,9 +1546,9 @@ function flairltd_manual_reviews_page_html() {
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row"><label for="comment">Review Comment *</label></th>
+                                <th scope="row"><label for="comment">Review Comment</label></th>
                                 <td>
-                                    <textarea name="comment" id="comment" class="large-text" rows="4" required><?php echo $edit_review ? esc_textarea( $edit_review->comment ) : ''; ?></textarea>
+                                    <textarea name="comment" id="comment" class="large-text" rows="4"><?php echo $edit_review ? esc_textarea( $edit_review->comment ) : ''; ?></textarea>
                                     <p class="description">Copy the full review text exactly as shown on Google.</p>
                                 </td>
                             </tr>
