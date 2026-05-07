@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'FLAIR_LTD_VERSION', '3.14.12' );
+define( 'FLAIR_LTD_VERSION', '3.14.13' );
 define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
@@ -40,6 +40,27 @@ function flairltd_enqueue() {
     wp_enqueue_script( 'flairltd-animations', FLAIR_LTD_URI . '/assets/js/animations.js', [], FLAIR_LTD_VERSION, true );
 }
 add_action( 'wp_enqueue_scripts', 'flairltd_enqueue' );
+
+/**
+ * Add defer/async to non-critical scripts and preload critical CSS.
+ */
+function flairltd_optimize_script_loader_tag( $tag, $handle ) {
+    // Defer animations.js — not needed for initial render
+    if ( 'flairltd-animations' === $handle && false === strpos( $tag, 'defer' ) ) {
+        $tag = str_replace( ' src=', ' defer src=', $tag );
+    }
+    return $tag;
+}
+add_filter( 'script_loader_tag', 'flairltd_optimize_script_loader_tag', 10, 2 );
+
+/**
+ * Preload critical stylesheet in <head> for faster discovery.
+ */
+function flairltd_preload_critical_css() {
+    $css_url = FLAIR_LTD_URI . '/assets/css/style.css?ver=' . FLAIR_LTD_VERSION;
+    echo '<link rel="preload" href="' . esc_url( $css_url ) . '" as="style" fetchpriority="high">' . "\n";
+}
+add_action( 'wp_head', 'flairltd_preload_critical_css', 1 );
 
 /**
  * Register widget areas so the classic Widgets screen is available.
@@ -102,6 +123,17 @@ function flairltd_style_fetchpriority( $html, $handle ) {
     return $html;
 }
 add_filter( 'style_loader_tag', 'flairltd_style_fetchpriority', 10, 2 );
+
+/**
+ * Defer Cloudflare email decode script (added by Cloudflare Email Obfuscation).
+ */
+function flairltd_defer_cf_email_decode( $tag, $handle ) {
+    if ( false !== strpos( $handle, 'email-decode' ) && false === strpos( $tag, 'defer' ) ) {
+        $tag = str_replace( ' src=', ' defer src=', $tag );
+    }
+    return $tag;
+}
+add_filter( 'script_loader_tag', 'flairltd_defer_cf_email_decode', 20, 2 );
 
 /**
  * Disable WordPress emoji script — saves an inline script + external JS request.
