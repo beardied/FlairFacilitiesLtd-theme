@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'FLAIR_LTD_VERSION', '3.14.13' );
+define( 'FLAIR_LTD_VERSION', '3.14.14' );
 define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
@@ -570,7 +570,7 @@ function flairltd_breadcrumb_schema() {
             'name'     => html_entity_decode( wp_strip_all_tags( $item['label'] ), ENT_QUOTES, 'UTF-8' ),
         ];
         if ( ! empty( $item['url'] ) ) {
-            $list_item['item'] = $item['url'];
+            $list_item['item'] = trailingslashit( $item['url'] );
         }
         $item_list[] = $list_item;
     }
@@ -1073,7 +1073,7 @@ function flairltd_seo_meta_tags() {
         // Default homepage (blog listing)
         $title = $site_name;
         $desc  = get_bloginfo( 'description' );
-        $canonical = home_url( '/' );
+        $canonical = trailingslashit( home_url( '/' ) );
         $og_image = get_custom_logo() ? wp_get_attachment_image_url( get_theme_mod( 'custom_logo' ), 'full' ) : '';
 
     } elseif ( is_front_page() ) {
@@ -1089,7 +1089,7 @@ function flairltd_seo_meta_tags() {
                 $desc = $get_first_paragraph( $front_page->post_content );
             }
         }
-        $canonical = get_permalink( $front_id );
+        $canonical = trailingslashit( get_permalink( $front_id ) );
         $og_image = get_the_post_thumbnail_url( $front_id, 'full' );
         $og_type  = 'website';
 
@@ -1098,13 +1098,13 @@ function flairltd_seo_meta_tags() {
         $posts_page_id = (int) get_option( 'page_for_posts' );
         $title = get_the_title( $posts_page_id ) . ' — ' . $site_name;
         $desc  = get_bloginfo( 'description' );
-        $canonical = get_permalink( $posts_page_id );
+        $canonical = trailingslashit( get_permalink( $posts_page_id ) );
 
     } elseif ( is_singular() ) {
         $post_id = get_the_ID();
         $title = get_the_title( $post_id ) . ' — ' . $site_name;
         $og_type = 'article';
-        $canonical = get_permalink( $post_id );
+        $canonical = trailingslashit( get_permalink( $post_id ) );
         $og_image = get_the_post_thumbnail_url( $post_id, 'full' );
 
         // Try to get description from multiple sources
@@ -1127,30 +1127,30 @@ function flairltd_seo_meta_tags() {
             $title = single_term_title( '', false ) . ' — ' . $site_name;
             $desc = term_description( $term->term_id, $term->taxonomy );
             $desc = wp_strip_all_tags( $desc, true );
-            $canonical = get_term_link( $term );
+            $canonical = trailingslashit( get_term_link( $term ) );
         }
 
     } elseif ( is_author() ) {
         $author = get_queried_object();
         $title = get_the_author_meta( 'display_name', $author->ID ) . ' — ' . $site_name;
         $desc = get_the_author_meta( 'description', $author->ID );
-        $canonical = get_author_posts_url( $author->ID );
+        $canonical = trailingslashit( get_author_posts_url( $author->ID ) );
 
     } elseif ( is_search() ) {
         $title = 'Search results for "' . get_search_query() . '" — ' . $site_name;
         $desc = 'Search results for "' . get_search_query() . '" on ' . $site_name;
-        $canonical = get_search_link();
+        $canonical = trailingslashit( get_search_link() );
 
     } elseif ( is_404() ) {
         $title = 'Page Not Found — ' . $site_name;
         $desc = 'The page you are looking for could not be found. Browse our site or use the search to find what you need.';
-        $canonical = home_url( '/404' );
+        $canonical = trailingslashit( home_url( '/404' ) );
 
     } elseif ( is_archive() ) {
         $title = get_the_archive_title() . ' — ' . $site_name;
         $desc = get_the_archive_description();
         $desc = wp_strip_all_tags( $desc, true );
-        $canonical = get_pagenum_link( get_query_var( 'paged', 1 ) );
+        $canonical = trailingslashit( get_pagenum_link( get_query_var( 'paged', 1 ) ) );
     }
 
     // Fallbacks
@@ -1161,7 +1161,7 @@ function flairltd_seo_meta_tags() {
         $desc = get_bloginfo( 'description' );
     }
     if ( empty( $canonical ) ) {
-        $canonical = home_url( add_query_arg( [] ) );
+        $canonical = trailingslashit( home_url( add_query_arg( [] ) ) );
     }
 
     // Clean up

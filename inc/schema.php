@@ -144,7 +144,7 @@ function flairltd_get_schema_service_name( $post_id = 0 ) {
 // ── HVACBusiness base data ───────────────────────────────────────
 function flairltd_get_hvacbusiness_base() {
     $site_name   = get_bloginfo( 'name' );
-    $site_url    = home_url( '/' );
+    $site_url    = trailingslashit( home_url( '/' ) );
     $logo        = flairltd_get_logo_url();
     $phone       = flairltd_get_intl_phone();
     $map_id      = get_theme_mod( 'flairltd_google_map_id', '' );
@@ -237,7 +237,7 @@ function flairltd_get_knows_about() {
             'sameAs'    => $s['sameAs'],
             'subjectOf' => [
                 '@type' => 'WebPage',
-                '@id'   => home_url( '/' . $s['slug'] ),
+                '@id'   => trailingslashit( home_url( '/' . $s['slug'] ) ),
                 'name'  => $s['label'],
             ],
         ];
@@ -259,6 +259,8 @@ function flairltd_output_schema() {
         return;
     }
 
+    $site_url  = trailingslashit( home_url( '/' ) );
+
     // ── CONTACT PAGE ──
     if ( is_page() ) {
         $schema_type = get_post_meta( get_the_ID(), '_flairltd_schema_type', true );
@@ -273,7 +275,7 @@ function flairltd_output_schema() {
         // ── PARENT SERVICE HUB ──
         if ( $schema_type === 'parent_service' ) {
             $page_id   = get_the_ID();
-            $page_url  = get_permalink( $page_id );
+            $page_url  = trailingslashit( get_permalink( $page_id ) );
             $page_name = flairltd_get_schema_service_name( $page_id );
             $page_desc = flairltd_get_schema_description( $page_id );
 
@@ -292,7 +294,7 @@ function flairltd_output_schema() {
                     'itemOffered' => [
                         '@type' => 'Service',
                         'name'  => get_the_title( $child->ID ),
-                        'url'   => get_permalink( $child->ID ),
+                        'url'   => trailingslashit( get_permalink( $child->ID ) ),
                     ],
                 ];
             }
@@ -333,7 +335,7 @@ function flairltd_output_schema() {
         // ── CHILD SERVICE ──
         if ( $schema_type === 'child_service' ) {
             $page_id   = get_the_ID();
-            $page_url  = get_permalink( $page_id );
+            $page_url  = trailingslashit( get_permalink( $page_id ) );
             $page_name = flairltd_get_schema_service_name( $page_id );
             $page_desc = flairltd_get_schema_description( $page_id );
             $image     = get_the_post_thumbnail_url( $page_id, 'full' );
@@ -377,7 +379,7 @@ function flairltd_output_schema() {
 
         // ── DEFAULT PAGE ──
         $page_id   = get_the_ID();
-        $page_url  = get_permalink( $page_id );
+        $page_url  = trailingslashit( get_permalink( $page_id ) );
         $page_name = get_the_title( $page_id );
         $page_desc = flairltd_get_schema_description( $page_id );
 
@@ -401,7 +403,7 @@ function flairltd_output_schema() {
     // ── BLOG POSTS ──
     if ( is_singular( 'post' ) ) {
         $post_id   = get_the_ID();
-        $post_url  = get_permalink( $post_id );
+        $post_url  = trailingslashit( get_permalink( $post_id ) );
         $headline  = get_the_title( $post_id );
         $desc      = flairltd_get_schema_description( $post_id );
         $published = get_the_date( 'Y-m-d', $post_id );
