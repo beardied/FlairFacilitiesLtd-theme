@@ -264,6 +264,21 @@ function flairltd_email_shortcode() {
 }
 add_shortcode( 'flair_email', 'flairltd_email_shortcode' );
 
+function flairltd_header_phone_shortcode() {
+    $phone = get_theme_mod( 'flairltd_phone', '020 7998 9005' );
+    $clean = preg_replace( '/[^0-9+]/', '', $phone );
+    return '<p class="has-text-align-center" style="font-size:12px">Call Us: <a href="tel:' . esc_attr( $clean ) . '">' . esc_html( $phone ) . '</a></p>';
+}
+add_shortcode( 'flair_header_phone', 'flairltd_header_phone_shortcode' );
+
+function flairltd_footer_contact_shortcode() {
+    $phone = get_theme_mod( 'flairltd_phone', '020 7998 9005' );
+    $clean = preg_replace( '/[^0-9+]/', '', $phone );
+    $email = get_theme_mod( 'flairltd_email', 'info@flairfacilities.co.uk' );
+    return '<p class="has-text-color" style="color:rgba(255,255,255,0.6);font-size:14px;line-height:1.8"><a href="tel:' . esc_attr( $clean ) . '" style="color:#ff5555">' . esc_html( $phone ) . '</a><br><a href="mailto:' . esc_attr( $email ) . '" style="color:#ff5555">' . esc_html( $email ) . '</a></p>';
+}
+add_shortcode( 'flair_footer_contact', 'flairltd_footer_contact_shortcode' );
+
 function flairltd_address_shortcode() {
     $street  = get_theme_mod( 'flairltd_address_street', '24 Kemp House, 152 City Road' );
     $city    = get_theme_mod( 'flairltd_address_city', 'London' );

@@ -14,6 +14,24 @@ $cBtn1Text  = ! empty( $attributes['cardBtn1Text'] ) ? $attributes['cardBtn1Text
 $cBtn1Url   = ! empty( $attributes['cardBtn1Url'] ) ? $attributes['cardBtn1Url'] : '#';
 $cBtn2Text  = ! empty( $attributes['cardBtn2Text'] ) ? $attributes['cardBtn2Text'] : '';
 $cBtn2Url   = ! empty( $attributes['cardBtn2Url'] ) ? $attributes['cardBtn2Url'] : '#';
+
+// Dynamic phone injection — replaces hardcoded defaults with current Customizer value
+$phone_raw   = get_theme_mod( 'flairltd_phone', '020 7998 9005' );
+$phone_clean = preg_replace( '/[^0-9+]/', '', $phone_raw );
+
+if ( strpos( $pUrl, 'tel:02079989005' ) === 0 ) {
+    $pUrl = 'tel:' . $phone_clean;
+}
+if ( strpos( $cBtn1Url, 'tel:02079989005' ) === 0 ) {
+    $cBtn1Url = 'tel:' . $phone_clean;
+}
+if ( $pText ) {
+    $pText = str_replace( '020 7998 9005', $phone_raw, $pText );
+}
+if ( $cBtn1Text ) {
+    $cBtn1Text = str_replace( '020 7998 9005', $phone_raw, $cBtn1Text );
+}
+
 $bgImageId  = ! empty( $attributes['backgroundImageId'] ) ? intval( $attributes['backgroundImageId'] ) : 0;
 $bgImage    = ! empty( $attributes['backgroundImage'] ) ? $attributes['backgroundImage'] : '';
 if ( $bgImageId ) {

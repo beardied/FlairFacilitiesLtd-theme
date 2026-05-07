@@ -233,6 +233,12 @@ p.has-text-align-center,
     color: #ffffff;
     margin: 0 0 12px;
 }
+.ffl-footer .ffl-address-shortcode,
+.ffl-footer .ffl-address-shortcode address {
+    color: rgba(255,255,255,0.6);
+    font-size: 14px;
+    line-height: 1.8;
+}
 .ffl-footer-nav.wp-block-navigation,
 .ffl-footer-nav .wp-block-navigation__container {
     justify-content: center !important;
