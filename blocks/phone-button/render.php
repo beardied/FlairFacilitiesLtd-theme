@@ -8,6 +8,8 @@ $font_size     = isset( $attributes['fontSize'] ) ? absint( $attributes['fontSiz
 $pad_x         = isset( $attributes['paddingX'] ) ? absint( $attributes['paddingX'] ) : 24;
 $pad_y         = isset( $attributes['paddingY'] ) ? absint( $attributes['paddingY'] ) : 14;
 $full_width    = ! empty( $attributes['fullWidth'] );
+$margin_top   = isset( $attributes['marginTop'] ) ? absint( $attributes['marginTop'] ) : 0;
+$margin_bottom = isset( $attributes['marginBottom'] ) ? absint( $attributes['marginBottom'] ) : 0;
 
 $phone_raw   = get_theme_mod( 'flairltd_phone', '020 7998 9005' );
 $phone_clean = preg_replace( '/[^0-9+]/', '', $phone_raw );
@@ -32,8 +34,15 @@ $wrapper_class = 'wp-block-flairltd-phone-button';
 if ( ! empty( $attributes['align'] ) ) {
     $wrapper_class .= ' align' . esc_attr( $attributes['align'] );
 }
+$wrapper_style = '';
+if ( $margin_top ) {
+    $wrapper_style .= 'margin-top:' . $margin_top . 'px;';
+}
+if ( $margin_bottom ) {
+    $wrapper_style .= 'margin-bottom:' . $margin_bottom . 'px;';
+}
 ?>
-<div class="<?php echo esc_attr( $wrapper_class ); ?>">
+<div class="<?php echo esc_attr( $wrapper_class ); ?>" <?php if ( $wrapper_style ) echo 'style="' . esc_attr( $wrapper_style ) . '"'; ?>>
     <a href="tel:<?php echo esc_attr( $phone_clean ); ?>" class="ffl-phone-button" style="<?php echo esc_attr( $style ); ?>">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
         <?php echo esc_html( $display_text ); ?>

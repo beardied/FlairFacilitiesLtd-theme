@@ -46,7 +46,7 @@
             };
 
             var alignClass = attr.align ? 'align' + attr.align : '';
-            var wrapperStyle = { border: '1px dashed #666', padding: '16px', background: '#f8fafc' };
+            var wrapperStyle = { border: '1px dashed #666', padding: '16px', background: '#f8fafc', marginTop: (attr.marginTop || 0) + 'px', marginBottom: (attr.marginBottom || 0) + 'px' };
             if ( attr.align === 'center' ) { wrapperStyle.textAlign = 'center'; }
             if ( attr.align === 'right' ) { wrapperStyle.textAlign = 'right'; }
 
@@ -84,7 +84,9 @@
                         el(RangeControl, { label: 'Font Size (px)', value: attr.fontSize, onChange: function(v) { props.setAttributes({ fontSize: v }); }, min: 12, max: 32, step: 1 }),
                         el(RangeControl, { label: 'Padding Vertical (px)', value: attr.paddingY, onChange: function(v) { props.setAttributes({ paddingY: v }); }, min: 4, max: 40, step: 2 }),
                         el(RangeControl, { label: 'Padding Horizontal (px)', value: attr.paddingX, onChange: function(v) { props.setAttributes({ paddingX: v }); }, min: 8, max: 60, step: 2 }),
-                        el(ToggleControl, { label: 'Full Width', checked: attr.fullWidth, onChange: function(v) { props.setAttributes({ fullWidth: v }); } })
+                        el(ToggleControl, { label: 'Full Width', checked: attr.fullWidth, onChange: function(v) { props.setAttributes({ fullWidth: v }); } }),
+                        el(RangeControl, { label: 'Top Margin (px)', value: attr.marginTop || 0, onChange: function(v) { props.setAttributes({ marginTop: v }); }, min: 0, max: 100, step: 4 }),
+                        el(RangeControl, { label: 'Bottom Margin (px)', value: attr.marginBottom || 0, onChange: function(v) { props.setAttributes({ marginBottom: v }); }, min: 0, max: 100, step: 4 })
                     )
                 ),
                 el('a', {

@@ -43,6 +43,14 @@
         "fullWidth": {
             "type": "boolean",
             "default": false
+        },
+        "marginTop": {
+            "type": "number",
+            "default": 0
+        },
+        "marginBottom": {
+            "type": "number",
+            "default": 0
         }
     },
     "render": "file:./render.php",
