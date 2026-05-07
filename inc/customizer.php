@@ -89,6 +89,9 @@ function flairltd_customize_register( $wp_customize ) {
     $wp_customize->add_setting( 'flairltd_address', [ 'default' => "24 Kemp House, 152 City Road\nLondon, EC1V 2NX", 'sanitize_callback' => 'sanitize_textarea_field' ] );
     $wp_customize->add_control( 'flairltd_address', [ 'label' => __( 'Address', 'flairfacilitiesltd' ), 'section' => 'flairltd_contact', 'type' => 'textarea' ] );
 
+    $wp_customize->add_setting( 'flairltd_google_map_id', [ 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ] );
+    $wp_customize->add_control( 'flairltd_google_map_id', [ 'label' => __( 'Google Map ID (for schema markup)', 'flairfacilitiesltd' ), 'section' => 'flairltd_contact', 'type' => 'text' ] );
+
     // Social Media
     $wp_customize->add_section( 'flairltd_social', [ 'title' => __( 'Social Media', 'flairfacilitiesltd' ), 'priority' => 31 ] );
     $socials = [

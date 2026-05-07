@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'FLAIR_LTD_VERSION', '3.14.10' );
+define( 'FLAIR_LTD_VERSION', '3.14.11' );
 define( 'FLAIR_LTD_DIR', get_template_directory() . '/' );
 define( 'FLAIR_LTD_URI', get_template_directory_uri() );
 
@@ -561,6 +561,7 @@ add_action( 'init', 'flairltd_register_patterns' );
 require_once FLAIR_LTD_DIR . 'inc/customizer.php';
 require_once FLAIR_LTD_DIR . 'inc/google-reviews.php';
 require_once FLAIR_LTD_DIR . 'inc/sitemap-submit.php';
+require_once FLAIR_LTD_DIR . 'inc/schema.php';
 
 function flairltd_body_class( $classes ) {
     if ( is_front_page() ) $classes[] = 'is-front-page';
