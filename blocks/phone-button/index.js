@@ -5,6 +5,8 @@
     var ToggleControl = wp.components.ToggleControl;
     var RangeControl = wp.components.RangeControl;
     var InspectorControls = wp.blockEditor.InspectorControls;
+    var BlockControls = wp.blockEditor.BlockControls;
+    var AlignmentToolbar = wp.blockEditor.AlignmentToolbar;
 
     var colors = window.flairltdCustomizerColors || {};
     var brandColors = [
@@ -52,6 +54,12 @@
             if ( attr.align === 'right' ) { wrapperStyle.textAlign = 'right'; }
 
             return el('div', { className: alignClass, style: wrapperStyle },
+                el(BlockControls, {},
+                    el(AlignmentToolbar, {
+                        value: attr.align,
+                        onChange: function(v) { props.setAttributes({ align: v }); }
+                    })
+                ),
                 el(InspectorControls, {},
                     el(PanelBody, { title: 'Button Text', initialOpen: true },
                         el(TextControl, {
