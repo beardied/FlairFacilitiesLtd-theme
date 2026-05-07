@@ -5,9 +5,6 @@
     var ToggleControl = wp.components.ToggleControl;
     var RangeControl = wp.components.RangeControl;
     var InspectorControls = wp.blockEditor.InspectorControls;
-    var BlockControls = wp.blockEditor.BlockControls;
-    var AlignmentToolbar = wp.blockEditor.AlignmentToolbar;
-
     var colors = window.flairltdCustomizerColors || {};
     var brandColors = [
         { label: 'Accent Red (' + (colors.accent || '#dc2626') + ')', value: colors.accent || '#dc2626' },
@@ -54,12 +51,6 @@
             if ( attr.align === 'right' ) { wrapperStyle.textAlign = 'right'; }
 
             return el('div', { className: alignClass, style: wrapperStyle },
-                el(BlockControls, {},
-                    el(AlignmentToolbar, {
-                        value: attr.align,
-                        onChange: function(v) { props.setAttributes({ align: v }); }
-                    })
-                ),
                 el(InspectorControls, {},
                     el(PanelBody, { title: 'Button Text', initialOpen: true },
                         el(TextControl, {
@@ -79,6 +70,16 @@
                         el(wp.components.SelectControl, { label: 'Text Colour', value: attr.textColor, options: textColors, onChange: function(v) { props.setAttributes({ textColor: v }); } })
                     ),
                     el(PanelBody, { title: 'Style' },
+                        el(wp.components.SelectControl, {
+                            label: 'Alignment',
+                            value: attr.align || '',
+                            options: [
+                                { label: 'Left', value: 'left' },
+                                { label: 'Center', value: 'center' },
+                                { label: 'Right', value: 'right' },
+                            ],
+                            onChange: function(v) { props.setAttributes({ align: v }); }
+                        }),
                         el(RangeControl, { label: 'Border Radius (px)', value: attr.borderRadius, onChange: function(v) { props.setAttributes({ borderRadius: v }); }, min: 0, max: 50, step: 1 }),
                         el(RangeControl, { label: 'Font Size (px)', value: attr.fontSize, onChange: function(v) { props.setAttributes({ fontSize: v }); }, min: 12, max: 32, step: 1 }),
                         el(RangeControl, { label: 'Padding Vertical (px)', value: attr.paddingY, onChange: function(v) { props.setAttributes({ paddingY: v }); }, min: 4, max: 40, step: 2 }),
