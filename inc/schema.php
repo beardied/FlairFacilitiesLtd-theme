@@ -150,6 +150,12 @@ function flairltd_get_hvacbusiness_base() {
     $map_id      = get_theme_mod( 'flairltd_google_map_id', '' );
     $has_map     = ! empty( $map_id ) ? 'https://www.google.com/maps/d/u/0/embed?mid=' . $map_id : '';
 
+    $street   = get_theme_mod( 'flairltd_address_street', '24 Kemp House, 152 City Road' );
+    $city     = get_theme_mod( 'flairltd_address_city', 'London' );
+    $region   = get_theme_mod( 'flairltd_address_region', 'Greater London' );
+    $postcode = get_theme_mod( 'flairltd_address_postcode', 'EC1V 2NX' );
+    $country  = get_theme_mod( 'flairltd_address_country', 'GB' );
+
     $base = [
         '@context'         => 'https://schema.org',
         '@type'            => 'HVACBusiness',
@@ -163,9 +169,11 @@ function flairltd_get_hvacbusiness_base() {
         'isicV4'           => '4322',
         'address'          => [
             '@type'           => 'PostalAddress',
-            'addressLocality' => 'London',
-            'addressRegion'   => 'Greater London',
-            'addressCountry'  => 'GB',
+            'streetAddress'   => $street,
+            'addressLocality' => $city,
+            'addressRegion'   => $region,
+            'postalCode'      => $postcode,
+            'addressCountry'  => $country,
         ],
         'areaServed'       => [
             [
@@ -328,6 +336,7 @@ function flairltd_output_schema() {
             $page_url  = get_permalink( $page_id );
             $page_name = flairltd_get_schema_service_name( $page_id );
             $page_desc = flairltd_get_schema_description( $page_id );
+            $image     = get_the_post_thumbnail_url( $page_id, 'full' );
 
             $schema = [
                 '@context'         => 'https://schema.org',
@@ -357,6 +366,10 @@ function flairltd_output_schema() {
                     '@id'   => $page_url,
                 ],
             ];
+
+            if ( $image ) {
+                $schema['image'] = $image;
+            }
 
             echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) . '</script>' . "\n";
             return;

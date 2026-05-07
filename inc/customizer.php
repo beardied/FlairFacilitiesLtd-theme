@@ -86,8 +86,21 @@ function flairltd_customize_register( $wp_customize ) {
     $wp_customize->add_control( 'flairltd_phone', [ 'label' => __( 'Phone', 'flairfacilitiesltd' ) . ' — Shortcode: [flair_phone]', 'section' => 'flairltd_contact', 'type' => 'text' ] );
     $wp_customize->add_setting( 'flairltd_email', [ 'default' => 'info@flairfacilities.co.uk', 'sanitize_callback' => 'sanitize_email' ] );
     $wp_customize->add_control( 'flairltd_email', [ 'label' => __( 'Email', 'flairfacilitiesltd' ) . ' — Shortcode: [flair_email]', 'section' => 'flairltd_contact', 'type' => 'email' ] );
-    $wp_customize->add_setting( 'flairltd_address', [ 'default' => "24 Kemp House, 152 City Road\nLondon, EC1V 2NX", 'sanitize_callback' => 'sanitize_textarea_field' ] );
-    $wp_customize->add_control( 'flairltd_address', [ 'label' => __( 'Address', 'flairfacilitiesltd' ), 'section' => 'flairltd_contact', 'type' => 'textarea' ] );
+    // Address — broken into parts for schema markup
+    $wp_customize->add_setting( 'flairltd_address_street', [ 'default' => '24 Kemp House, 152 City Road', 'sanitize_callback' => 'sanitize_textarea_field' ] );
+    $wp_customize->add_control( 'flairltd_address_street', [ 'label' => __( 'Street Address', 'flairfacilitiesltd' ), 'section' => 'flairltd_contact', 'type' => 'textarea' ] );
+
+    $wp_customize->add_setting( 'flairltd_address_city', [ 'default' => 'London', 'sanitize_callback' => 'sanitize_text_field' ] );
+    $wp_customize->add_control( 'flairltd_address_city', [ 'label' => __( 'City / Locality', 'flairfacilitiesltd' ), 'section' => 'flairltd_contact', 'type' => 'text' ] );
+
+    $wp_customize->add_setting( 'flairltd_address_region', [ 'default' => 'Greater London', 'sanitize_callback' => 'sanitize_text_field' ] );
+    $wp_customize->add_control( 'flairltd_address_region', [ 'label' => __( 'Region / County', 'flairfacilitiesltd' ), 'section' => 'flairltd_contact', 'type' => 'text' ] );
+
+    $wp_customize->add_setting( 'flairltd_address_postcode', [ 'default' => 'EC1V 2NX', 'sanitize_callback' => 'sanitize_text_field' ] );
+    $wp_customize->add_control( 'flairltd_address_postcode', [ 'label' => __( 'Postcode', 'flairfacilitiesltd' ), 'section' => 'flairltd_contact', 'type' => 'text' ] );
+
+    $wp_customize->add_setting( 'flairltd_address_country', [ 'default' => 'GB', 'sanitize_callback' => 'sanitize_text_field' ] );
+    $wp_customize->add_control( 'flairltd_address_country', [ 'label' => __( 'Country Code (ISO 3166-1 alpha-2)', 'flairfacilitiesltd' ), 'section' => 'flairltd_contact', 'type' => 'text' ] );
 
     $wp_customize->add_setting( 'flairltd_google_map_id', [ 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ] );
     $wp_customize->add_control( 'flairltd_google_map_id', [ 'label' => __( 'Google Map ID (for schema markup)', 'flairfacilitiesltd' ), 'section' => 'flairltd_contact', 'type' => 'text' ] );
@@ -252,10 +265,47 @@ function flairltd_email_shortcode() {
 add_shortcode( 'flair_email', 'flairltd_email_shortcode' );
 
 function flairltd_address_shortcode() {
-    $address = get_theme_mod( 'flairltd_address', "24 Kemp House, 152 City Road\nLondon, EC1V 2NX" );
-    return '<div class="ffl-address-shortcode"><address>' . wp_kses_post( nl2br( $address ) ) . '</address></div>';
+    $street  = get_theme_mod( 'flairltd_address_street', '24 Kemp House, 152 City Road' );
+    $city    = get_theme_mod( 'flairltd_address_city', 'London' );
+    $region  = get_theme_mod( 'flairltd_address_region', 'Greater London' );
+    $postcode = get_theme_mod( 'flairltd_address_postcode', 'EC1V 2NX' );
+    $country = get_theme_mod( 'flairltd_address_country', 'GB' );
+
+    $lines = array_filter( [ trim( $street ), trim( $city . ', ' . $region . ' ' . $postcode ), trim( $country ) ] );
+    $address = implode( "\n", $lines );
+
+    return '<div class="ffl-address-shortcode"><address>' . wp_kses_post( nl2br( esc_html( $address ) ) ) . '</address></div>';
 }
 add_shortcode( 'flair_address', 'flairltd_address_shortcode' );
+
+/**
+ * Migrate old single-line address to new split fields (runs once).
+ */
+function flairltd_migrate_address_fields() {
+    if ( get_option( 'flairltd_address_migrated' ) ) {
+        return;
+    }
+
+    $old = get_theme_mod( 'flairltd_address' );
+    if ( ! empty( $old ) ) {
+        $parts = array_map( 'trim', explode( "\n", $old ) );
+        if ( ! empty( $parts[0] ) ) {
+            set_theme_mod( 'flairltd_address_street', $parts[0] );
+        }
+        if ( ! empty( $parts[1] ) ) {
+            // Try to extract city and postcode from line like "London, EC1V 2NX"
+            if ( preg_match( '/^(.+?),\s*(.+)$/', $parts[1], $m ) ) {
+                set_theme_mod( 'flairltd_address_city', trim( $m[1] ) );
+                set_theme_mod( 'flairltd_address_postcode', trim( $m[2] ) );
+            } else {
+                set_theme_mod( 'flairltd_address_city', $parts[1] );
+            }
+        }
+    }
+
+    update_option( 'flairltd_address_migrated', '1' );
+}
+add_action( 'after_setup_theme', 'flairltd_migrate_address_fields' );
 
 function flairltd_footer_desc_shortcode() {
     $desc = get_theme_mod( 'flairltd_footer_desc', 'Leading commercial mechanical and heating contractor providing services for companies and communal dwellings in London and surrounding areas.' );
