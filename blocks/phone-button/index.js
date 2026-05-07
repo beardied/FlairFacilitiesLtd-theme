@@ -17,9 +17,13 @@
         { label: 'Black (#000000)', value: '#000000' },
     ];
     var textColors = [
-        { label: 'White', value: '#ffffff' },
-        { label: 'Black', value: '#000000' },
-        { label: 'Dark Navy', value: '#0a1628' },
+        { label: 'White (#ffffff)', value: '#ffffff' },
+        { label: 'Black (#000000)', value: '#000000' },
+        { label: 'Accent Red (' + (colors.accent || '#dc2626') + ')', value: colors.accent || '#dc2626' },
+        { label: 'Primary Blue (' + (colors.primary || '#1e3a8a') + ')', value: colors.primary || '#1e3a8a' },
+        { label: 'Bright Blue (' + (colors.bright || '#2563eb') + ')', value: colors.bright || '#2563eb' },
+        { label: 'Orange (' + (colors.orange || '#ea580c') + ')', value: colors.orange || '#ea580c' },
+        { label: 'Dark Navy (' + (colors.dark || '#0a1628') + ')', value: colors.dark || '#0a1628' },
     ];
 
     wp.blocks.registerBlockType('flairltd/phone-button', {
