@@ -46,7 +46,12 @@
                 width: attr.fullWidth ? '100%' : 'auto',
             };
 
-            return el('div', { style: { border: '1px dashed #666', padding: '16px', background: '#f8fafc' } },
+            var alignClass = attr.align ? 'align' + attr.align : '';
+            var wrapperStyle = { border: '1px dashed #666', padding: '16px', background: '#f8fafc' };
+            if ( attr.align === 'center' ) { wrapperStyle.textAlign = 'center'; }
+            if ( attr.align === 'right' ) { wrapperStyle.textAlign = 'right'; }
+
+            return el('div', { className: alignClass, style: wrapperStyle },
                 el(InspectorControls, {},
                     el(PanelBody, { title: 'Button Text', initialOpen: true },
                         el(TextControl, {
