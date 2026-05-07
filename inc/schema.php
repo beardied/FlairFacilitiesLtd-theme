@@ -187,7 +187,7 @@ function flairltd_get_hvacbusiness_base() {
                     'latitude'  => 51.5074,
                     'longitude' => -0.1278,
                 ],
-                'geoRadius'   => '30000',
+                'geoRadius'   => '100000',
             ],
         ],
         'hasCredential'    => [
